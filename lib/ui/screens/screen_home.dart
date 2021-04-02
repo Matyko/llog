@@ -3,7 +3,8 @@ import 'package:llog/ui/screens/screen_event_form.dart';
 import 'package:llog/ui/screens/screen_event_list.dart';
 import 'package:llog/ui/screens/screen_log_form.dart';
 import 'package:llog/ui/screens/screen_log_list.dart';
-import 'package:llog/ui/screens/screen_profile.dart';
+import 'package:llog/ui/screens/screen_unit_form.dart';
+import 'package:llog/ui/screens/screen_unit_list.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -14,12 +15,12 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _children = [
     LogListScreen(),
     EventListScreen(),
-    ProfileScreen(),
+    UnitListScreen(),
   ];
 
-  final List<String> _titles = ["Your Logs", "Your Events", "Profile"];
+  final List<String> _titles = ["Your Logs", "Your Events", "Your Units"];
 
-  final List<IconData> _icons = [Icons.add, Icons.event_note];
+  final List<IconData> _icons = [Icons.add, Icons.event_note, Icons.add];
 
   int _currentIndex = 0;
 
@@ -48,7 +49,9 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Events',
           ),
           new BottomNavigationBarItem(
-              icon: Icon(Icons.person), label: 'Profile')
+              icon: Icon(Icons.rule),
+              label: 'Units'
+          )
         ],
       ),
       floatingActionButton: _icons[_currentIndex] != null
@@ -59,6 +62,9 @@ class _HomeScreenState extends State<HomeScreen> {
           }
           if (_currentIndex == 1) {
             _goToEventFormScreen(context);
+          }
+          if (_currentIndex == 2) {
+            _goToUnitFormScreen(context);
           }
         },
         child: Icon(_icons[_currentIndex]),
@@ -74,6 +80,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   _goToLogFormScreen(BuildContext context) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => LogFormScreen()));
+  }
+
+  _goToUnitFormScreen(BuildContext context) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => UnitFormScreen()));
   }
 
   onTapNavigation(int index) {

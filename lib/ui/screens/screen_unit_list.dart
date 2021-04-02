@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:llog/data/moor_database.dart';
-import 'package:llog/ui/screens/screen_event_form.dart';
+import 'package:llog/ui/screens/screen_unit_form.dart';
 import 'package:llog/ui/widgets/llog_dismissible.dart';
-import 'package:moor_flutter/moor_flutter.dart' as moor;
 import 'package:provider/provider.dart';
 
-class EventListScreen extends StatefulWidget {
+class UnitListScreen extends StatefulWidget {
   @override
-  _EventListScreenState createState() => _EventListScreenState();
+  _UnitListScreenState createState() => _UnitListScreenState();
 }
 
-class _EventListScreenState extends State<EventListScreen> {
+class _UnitListScreenState extends State<UnitListScreen> {
   @override
   @override
   Widget build(BuildContext context) {
@@ -20,10 +19,10 @@ class _EventListScreenState extends State<EventListScreen> {
   }
 
   _buildEventList(BuildContext context) {
-    final eventDao = Provider.of<AppDatabase>(context).eventDao;
+    final unitDao = Provider.of<AppDatabase>(context).unitDao;
     return StreamBuilder(
-        stream: eventDao.watchEvents(moor.OrderingMode.desc),
-        builder: (context, AsyncSnapshot<List<EventWithUnit>> snapshot) {
+        stream: unitDao.watchUnits(),
+        builder: (context, AsyncSnapshot<List<Unit>> snapshot) {
           final events = snapshot.data ?? [];
           return AnimatedOpacity(
               opacity:
@@ -34,7 +33,7 @@ class _EventListScreenState extends State<EventListScreen> {
                       itemCount: events.length,
                       itemBuilder: (_, index) {
                         final itemEvent = events[index];
-                        return _buildEventItem(itemEvent, eventDao);
+                        return _buildUnitItem(itemEvent, unitDao);
                       },
                     )
                   : Padding(
@@ -51,7 +50,7 @@ class _EventListScreenState extends State<EventListScreen> {
                             child: Column(
                               children: [
                                 Text(
-                                  'No events to show...',
+                                  'No units to show...',
                                   style: TextStyle(
                                       fontSize: 20,
                                       color: Colors.grey.shade400),
@@ -73,37 +72,33 @@ class _EventListScreenState extends State<EventListScreen> {
         });
   }
 
-  _buildEventItem(EventWithUnit eventWithUnit, EventDao eventDao) {
+  _buildUnitItem(Unit unit, UnitDao unitDao) {
     return LlogDismissible(
         confirmDismiss: (DismissDirection direction) =>
-            _handleDismiss(direction, eventWithUnit),
+            _handleDismiss(direction, unit),
         onDismissed: (DismissDirection direction) {
-          Event eventWithDeletedAt = new Event(
-              id: eventWithUnit.event.id,
-              createdAt: eventWithUnit.event.createdAt,
-              modifiedAt: eventWithUnit.event.modifiedAt,
+          Unit unitWithDeletedAt = new Unit(
+              id: unit.id,
+              createdAt: unit.createdAt,
+              modifiedAt: unit.modifiedAt,
               deletedAt: DateTime.now(),
-              name: eventWithUnit.event.name,
-              description: eventWithUnit.event.description,
-              unitId: eventWithUnit.event.unitId);
-          eventDao.updateEvent(eventWithDeletedAt);
+              name: unit.name,
+              description: unit.description);
+          unitDao.updateUnit(unitWithDeletedAt);
         },
-        key: Key(eventWithUnit.event.name),
+        key: Key(unit.name),
         child: ListTile(
           title: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: Text(eventWithUnit.event.name),
+            child: Text(unit.name),
           ),
         ));
   }
 
-  Future<bool> _handleDismiss(
-      DismissDirection direction, EventWithUnit eventWithUnit) async {
+  Future<bool> _handleDismiss(DismissDirection direction, Unit unit) async {
     if (direction == DismissDirection.startToEnd) {
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (_) => EventFormScreen(eventWithUnit: eventWithUnit)));
+      Navigator.push(context,
+          MaterialPageRoute(builder: (_) => UnitFormScreen(unit: unit)));
       return false;
     }
     return true;

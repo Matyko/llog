@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:llog/data/moor_database.dart';
+import 'package:llog/ui/screens/screen_unit_form.dart';
 import 'package:provider/provider.dart';
 
 class EventFormScreen extends StatefulWidget {
@@ -119,7 +120,12 @@ class _EventFormScreenState extends State<EventFormScreen> {
                                     padding: const EdgeInsets.only(left: 20.0),
                                     child: ElevatedButton(
                                       child: Text('Add new unit'),
-                                      onPressed: () => _showUnitDialog(context),
+                                      onPressed: () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (_) => UnitFormScreen()));
+                                      },
                                     ),
                                   )
                                 ],
@@ -160,71 +166,5 @@ class _EventFormScreenState extends State<EventFormScreen> {
         ),
       ),
     );
-  }
-
-  void _showUnitDialog(BuildContext context, {Unit originalUnit}) {
-    final TextEditingController _unitNameController = TextEditingController(
-        text: originalUnit == null ? "" : originalUnit.name);
-    final TextEditingController _unitDescriptionController =
-        TextEditingController(
-            text: originalUnit == null ? "" : originalUnit.description);
-    final _unitFormKey = GlobalKey<FormState>();
-    final unitDao = Provider.of<AppDatabase>(context, listen: false).unitDao;
-
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            content: Form(
-              key: _unitFormKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 20.0),
-                    child: Text(
-                      'Create new unit',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  TextFormField(
-                    decoration: InputDecoration(hintText: "Unit name"),
-                    controller: _unitNameController,
-                    validator: (value) =>
-                        value.isEmpty ? 'Please enter a unit name!' : null,
-                  ),
-                  TextFormField(
-                    decoration: InputDecoration(hintText: "Unit description"),
-                    controller: _unitDescriptionController,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 20.0),
-                    child: ElevatedButton(
-                        onPressed: () async {
-                          if (_unitFormKey.currentState.validate()) {
-                            Unit unit = new Unit(
-                                id: null,
-                                name: _unitNameController.text,
-                                description: _unitDescriptionController.text,
-                                createdAt: originalUnit == null
-                                    ? new DateTime.now()
-                                    : originalUnit.createdAt,
-                                modifiedAt: new DateTime.now());
-                            if (originalUnit != null) {
-                              unitDao.updateUnit(unit);
-                            } else {
-                              unitDao.insertUnit(unit);
-                            }
-                            Navigator.of(context).pop();
-                          }
-                        },
-                        child: Text('Create')),
-                  )
-                ],
-              ),
-            ),
-          );
-        });
   }
 }

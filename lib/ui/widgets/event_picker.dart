@@ -6,8 +6,9 @@ import 'package:provider/provider.dart';
 class EventPicker extends StatefulWidget {
   final EventWithUnit eventWithUnit;
   final Function onChange;
+  final bool showNull;
 
-  const EventPicker({this.eventWithUnit, this.onChange});
+  const EventPicker({this.eventWithUnit, this.onChange, this.showNull = false});
 
   @override
   _EventPickerState createState() => _EventPickerState();
@@ -32,6 +33,23 @@ class _EventPickerState extends State<EventPicker> {
         builder: (context,
             AsyncSnapshot<List<EventWithUnit>> snapshot) {
           final eventsWithUnits = snapshot.data ?? [];
+          final items = eventsWithUnits
+              .map<DropdownMenuItem>(
+                  (eventWithUnit) {
+                return DropdownMenuItem(
+                    value: eventWithUnit.event.id,
+                    child: Text(eventWithUnit
+                        .event.name +
+                        (eventWithUnit.unit != null
+                            ? ' (${eventWithUnit.unit.name})'
+                            : '')));
+              }).toList();
+          if (widget.showNull) items.add(
+            DropdownMenuItem(
+              value: null,
+              child: Text('None')
+            )
+          );
           return Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -44,6 +62,12 @@ class _EventPickerState extends State<EventPicker> {
                           : null,
                       hint: Text('Select event'),
                       onChanged: (id) {
+                        if (id == null) {
+                          if (widget.onChange != null) {
+                            widget.onChange(null);
+                          }
+                          return;
+                        }
                         setState(() {
                           _eventWithUnit = eventsWithUnits
                               .firstWhere((element) =>
@@ -57,17 +81,7 @@ class _EventPickerState extends State<EventPicker> {
                       validator: (value) => value == null
                           ? 'Please select an event!'
                           : null,
-                      items: eventsWithUnits
-                          .map<DropdownMenuItem>(
-                              (eventWithUnit) {
-                            return DropdownMenuItem(
-                                value: eventWithUnit.event.id,
-                                child: Text(eventWithUnit
-                                    .event.name +
-                                    (eventWithUnit.unit != null
-                                        ? ' (${eventWithUnit.unit.name})'
-                                        : '')));
-                          }).toList()),
+                      items: items),
                 ),
             ],
           );
