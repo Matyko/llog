@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<String> _titles = ["Your Logs", "Your Events", "Your Units"];
 
-  final List<IconData> _icons = [Icons.add, Icons.event_note, Icons.add];
+  final List<IconData> _icons = [Icons.post_add, Icons.event_note, Icons.add_chart];
 
   int _currentIndex = 0;
 
@@ -49,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Events',
           ),
           new BottomNavigationBarItem(
-              icon: Icon(Icons.rule),
+              icon: Icon(Icons.straighten),
               label: 'Units'
           )
         ],

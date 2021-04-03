@@ -15,6 +15,7 @@ class LogListScreen extends StatefulWidget {
 
 class _LogListScreenState extends State<LogListScreen> {
   EventWithUnit _eventWithUnit;
+  bool _showFilters = false;
 
   @override
   Widget build(BuildContext context) {
@@ -40,43 +41,100 @@ class _LogListScreenState extends State<LogListScreen> {
                 ? Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 0,
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Text('Filter by event'),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: EventPicker(
-                          showNull: true,
-                          eventWithUnit: _eventWithUnit,
-                          onChange: (EventWithUnit eventWithUnit) {
-                            print(eventWithUnit);
-                            setState(() {
-                              _eventWithUnit = eventWithUnit;
-                            });
-                          },
-                        ),
-                      ),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Colors.grey.shade500
+                      )
                     )
-                  ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 0,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            height: 45,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Colors.grey.shade500
+                              ),
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(4),
+                                bottomLeft: Radius.circular(4),
+                                topRight: Radius.circular(_showFilters ? 0 : 4),
+                                bottomRight: Radius.circular(_showFilters ? 0 : 4)
+                              )
+                            ),
+                            child: Center(child: TextButton(
+                                style: TextButton.styleFrom(
+                                  primary: _showFilters ? Theme.of(context).primaryColor : Colors.grey.shade500
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _showFilters = !_showFilters;
+                                  });
+                                  if (!_showFilters) {
+                                    _eventWithUnit = null;
+                                  }
+                                },
+                                child: Row(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 10.0),
+                                      child: Text('Filter'),
+                                    ),
+                                    Icon(Icons.tune)
+                                  ],
+                                )
+                            )),
+                          ),
+                        ),
+                        _showFilters ? Expanded(
+                          flex: 1,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            height: 45,
+                            decoration: BoxDecoration(
+                                border: Border.all(
+                                    color: Colors.grey.shade500
+                                ),
+                                borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(4),
+                                    bottomRight: Radius.circular(4),
+                                    topLeft: Radius.circular(_showFilters ? 0 : 4),
+                                    bottomLeft: Radius.circular(_showFilters ? 0 : 4)
+                                )
+                            ),
+                            child: Center(
+                              child: EventPicker(
+                                hasUnderline: false,
+                                showNull: true,
+                                eventWithUnit: _eventWithUnit,
+                                onChange: (EventWithUnit eventWithUnit) {
+                                  print(eventWithUnit);
+                                  setState(() {
+                                    _eventWithUnit = eventWithUnit;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        ) : Container()
+                      ],
+                    ),
+                  ),
                 ),
                 Flexible(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: ListView.builder(
-                      itemCount: logs.length,
-                      itemBuilder: (_, index) {
-                        final itemLog = logs[index];
-                        return _buildLogItem(itemLog, logDao, index, logs);
-                      },
-                    ),
+                  child: ListView.builder(
+                    itemCount: logs.length,
+                    itemBuilder: (_, index) {
+                      final itemLog = logs[index];
+                      return _buildLogItem(itemLog, logDao, index, logs);
+                    },
                   ),
                 ),
               ],
