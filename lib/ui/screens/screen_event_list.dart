@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
 import 'package:llog/data/moor_database.dart';
+import 'package:llog/ui/screens/screen_analytics.dart';
 import 'package:llog/ui/screens/screen_event_form.dart';
 import 'package:llog/ui/widgets/llog_dismissible.dart';
 import 'package:moor_flutter/moor_flutter.dart' as moor;
@@ -74,6 +77,7 @@ class _EventListScreenState extends State<EventListScreen> {
   }
 
   _buildEventItem(EventWithUnit eventWithUnit, EventDao eventDao) {
+    final DateFormat dateFormat = new DateFormat('yyyy/MM/dd');
     return LlogDismissible(
         confirmDismiss: (DismissDirection direction) =>
             _handleDismiss(direction, eventWithUnit),
@@ -90,9 +94,70 @@ class _EventListScreenState extends State<EventListScreen> {
         },
         key: Key(eventWithUnit.event.name),
         child: ListTile(
-          title: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Text(eventWithUnit.event.name),
+          title: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(eventWithUnit.event.name,
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              color: Theme.of(context).primaryColor)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Tooltip(
+                          message: 'Created at',
+                          child: Row(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(right: 5.0),
+                                child: Icon(Icons.date_range,
+                                    size: 18, color: Colors.grey.shade700),
+                              ),
+                              Text(
+                                  dateFormat
+                                      .format(eventWithUnit.event.createdAt),
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey.shade700)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (eventWithUnit.unit != null)
+                        Tooltip(
+                          message: 'Unit',
+                          child: Row(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(right: 5.0),
+                                child: Icon(Icons.straighten,
+                                    size: 18, color: Colors.grey.shade700),
+                              ),
+                              Text(eventWithUnit.unit.name,
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey.shade700)),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                  IconButton(icon: Icon(Icons.analytics, size: 30, color: Theme.of(context).accentColor), onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => AnalyticsScreen(eventWithUnit))
+                    );
+                  })
+                ],
+              ),
+            ),
           ),
         ));
   }

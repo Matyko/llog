@@ -68,6 +68,18 @@ class LogDao extends DatabaseAccessor<AppDatabase> with _$LogDaoMixin {
             }).toList());
   }
 
+  Stream<double> getValueSumForEvent(int eventId) {
+    final sumOfValues = logs.value.sum();
+    final query = selectOnly(logs)..addColumns([sumOfValues]);
+    return query.map((row) => row.read(sumOfValues)).watchSingle();
+  }
+
+  Stream<double> getValueAvgForEvent(int eventId) {
+    final avgOfValues = logs.value.avg();
+    final query = selectOnly(logs)..addColumns([avgOfValues]);
+    return query.map((row) => row.read(avgOfValues)).watchSingle();
+  }
+
   Future insertLog(Insertable<Log> log) => into(logs).insert(log);
 
   Future updateLog(Insertable<Log> log) => update(logs).replace(log);

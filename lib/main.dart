@@ -15,6 +15,8 @@ class LLog extends StatelessWidget {
               elevatedButtonTheme: ElevatedButtonThemeData(
                   style: ElevatedButton.styleFrom(primary: Colors.orange)),
               primaryColor: Colors.deepOrange,
+              primaryColorLight: Colors.deepOrange.shade100,
+              primaryColorDark: Colors.deepOrange.shade700,
               accentColor: Colors.deepOrangeAccent,
               backgroundColor: Colors.white,
               scaffoldBackgroundColor: Colors.white,
