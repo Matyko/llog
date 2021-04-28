@@ -7,9 +7,8 @@ class EventPicker extends StatefulWidget {
   final EventWithUnit eventWithUnit;
   final Function onChange;
   final bool showNull;
-  final bool hasUnderline;
 
-  const EventPicker({this.eventWithUnit, this.onChange, this.showNull = false, this.hasUnderline = true});
+  const EventPicker({this.eventWithUnit, this.onChange, this.showNull = false});
 
   @override
   _EventPickerState createState() => _EventPickerState();
@@ -61,11 +60,11 @@ class _EventPickerState extends State<EventPicker> {
                           _eventWithUnit.event != null)
                           ? _eventWithUnit.event.id
                           : null,
-                      decoration: !widget.hasUnderline ? InputDecoration(
+                      decoration: InputDecoration(
                         enabledBorder: UnderlineInputBorder(
                           borderSide: BorderSide(color: Colors.transparent)
                         ),
-                      ) : null,
+                      ),
                       hint: Text('Select event'),
                       onChanged: (id) {
                         if (id == null) {

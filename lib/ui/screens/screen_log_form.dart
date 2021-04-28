@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:llog/data/moor_database.dart';
 import 'package:llog/ui/widgets/event_picker.dart';
+import 'package:llog/ui/widgets/form_element.dart';
 import 'package:provider/provider.dart';
 
 class LogFormScreen extends StatefulWidget {
@@ -37,61 +38,84 @@ class _LogFormScreenState extends State<LogFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-            title: Text((widget.logData == null ? 'Create' : 'Edit') + ' Log')),
+          title: Text((widget.logData == null ? 'Create' : 'Edit') + ' Log'),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                  onPressed: () => _save(context), child: Text('Save')),
+            )
+          ],
+        ),
         body: SingleChildScrollView(
             child: Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.only(top: 10.0),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     children: [
-                      Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(right: 20.0),
-                            child: Text(
-                              'When?',
-                              style: TextStyle(fontSize: 20.0),
-                            ),
+                      Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 10.0, horizontal: 20.0),
+                          child: FormElementWithIcon(
+                              child: EventPicker(
+                                  eventWithUnit: _eventWithUnit,
+                                  onChange: (EventWithUnit eventWithUnit) =>
+                                      setState(() {
+                                        _eventWithUnit = eventWithUnit;
+                                      })),
+                              icon: Icons.playlist_add,
+                              label: 'Event')
                           ),
-                          ElevatedButton(
-                            onPressed: () => _openDatePicker(context),
-                            child: Text(dateFormat.format(_date)),
-                          ),
-                        ],
+                      Divider(
+                        color: Colors.grey.shade600,
                       ),
-                      EventPicker(
-                        eventWithUnit: _eventWithUnit,
-                        onChange: (EventWithUnit eventWithUnit) => setState(() {
-                          _eventWithUnit = eventWithUnit;
-                        }),
-                      ),
-                      if (_eventWithUnit != null && _eventWithUnit.unit != null)
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                decoration: InputDecoration(
-                                    hintText: "Enter a measurement value"),
-                                keyboardType: TextInputType.number,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.allow(
-                                      RegExp(r'^\d+\.?\d{0,4}'))
-                                ],
-                                controller: _valueController,
-                                validator: (value) => value.isEmpty
-                                    ? 'Please enter a measurement value!'
-                                    : null,
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child:
+                          FormElementWithIcon(
+                            icon: Icons.event,
+                            label: 'Date',
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 15.0),
+                              child: InkWell(
+                                onTap: () => _openDatePicker(context),
+                                child: Text(
+                                  dateFormat.format(_date),
+                                  style: TextStyle(
+                                      color: Theme.of(context).primaryColor),
+                                ),
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 20.0),
-                              child: Text(_eventWithUnit.unit.name),
-                            )
-                          ],
+                          ),
+                      ),
+                      if (_eventWithUnit != null && _eventWithUnit.unit != null)
+                        Divider(
+                          color: Colors.grey.shade600,
                         ),
-                      ElevatedButton(
-                          onPressed: () => _save(context), child: Text('Log!'))
+                      if (_eventWithUnit != null && _eventWithUnit.unit != null)
+                        Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: FormElementWithIcon(
+                            icon: Icons.straighten,
+                            label: 'Value',
+                            trailing: Text(_eventWithUnit.unit.name),
+                            child: TextFormField(
+                              decoration: InputDecoration(
+                                  hintText:
+                                  "Enter a measurement value"),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                    RegExp(r'^\d+\.?\d{0,4}'))
+                              ],
+                              controller: _valueController,
+                              validator: (value) => value.isEmpty
+                                  ? 'Please enter a measurement value!'
+                                  : null,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ))));

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:llog/data/moor_database.dart';
 import 'package:llog/ui/screens/screen_unit_form.dart';
+import 'package:llog/ui/widgets/form_element.dart';
 import 'package:provider/provider.dart';
 
 class EventFormScreen extends StatefulWidget {
@@ -44,126 +45,145 @@ class _EventFormScreenState extends State<EventFormScreen> {
     return Scaffold(
       appBar: AppBar(
           title: Text(
-              (widget.eventWithUnit == null ? 'Create' : 'Edit') + ' Event')),
+              (widget.eventWithUnit == null ? 'Create' : 'Edit') + ' Event'),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: ElevatedButton(
+                child: Text(
+                    (widget.eventWithUnit == null ? 'Create' : 'Save') +
+                        ' Event'),
+                onPressed: () {
+                  if (_formKey.currentState.validate()) {
+                    final event = new Event(
+                        id: null,
+                        name: _nameController.text,
+                        description: _descriptionController.text,
+                        unitId: _unitId,
+                        createdAt: widget.eventWithUnit == null
+                            ? DateTime.now()
+                            : widget.eventWithUnit.event.createdAt,
+                        modifiedAt: DateTime.now()
+                    );
+                    if (widget.eventWithUnit == null) {
+                      eventDao.insertEvent(event);
+                    } else {
+                      eventDao.updateEvent(event);
+                    }
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+            )
+          ],
+      ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 80.0),
-                    child: Image(
-                      image: AssetImage('assets/images/plan_1.png'),
+        child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 80.0),
+                  child: Image(
+                    image: AssetImage('assets/images/plan_1.png'),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                  child: FormElementWithIcon(
+                    icon: Icons.label,
+                    label: 'Event Name',
+                    child: TextFormField(
+                      decoration: InputDecoration(hintText: "Event name"),
+                      controller: _nameController,
+                      validator: (value) =>
+                      value.isEmpty ? 'Please enter an event name!' : null,
                     ),
                   ),
-                  TextFormField(
-                    decoration: InputDecoration(hintText: "Event name"),
-                    controller: _nameController,
-                    validator: (value) =>
-                        value.isEmpty ? 'Please enter an event name!' : null,
+                ),
+                Divider(color: Colors.grey.shade700),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                  child: FormElementWithIcon(
+                    icon: Icons.event_note,
+                    label: 'Event description',
+                    child: TextFormField(
+                      minLines: 1,
+                      maxLines: 4,
+                      decoration: InputDecoration(hintText: "Event description"),
+                      controller: _descriptionController,
+                    )
                   ),
-                  TextFormField(
-                    minLines: 2,
-                    maxLines: 4,
-                    decoration: InputDecoration(hintText: "Event description"),
-                    controller: _descriptionController,
+                ),
+                Divider(color: Colors.grey.shade700),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                  child: FormElementWithIcon(
+                      label: 'Is this event measurable?',
+                      icon: Icons.straighten,
+                      child: Row(
+                        children: [
+                          Switch(
+                              value: _measurable,
+                              onChanged: (measurable) => {
+                                setState(() {
+                                  _measurable = measurable;
+                                })
+                              }),
+                          Text('Measurable')
+                        ],
+                      )
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 40.0),
-                    child: Row(
-                      children: [
-                        Switch(
-                            value: _measurable,
-                            onChanged: (measurable) => {
+                ),
+                if (_measurable)
+                  Divider(color: Colors.grey.shade700),
+                if (_measurable)
+                  StreamBuilder(
+                      stream: unitDao.watchUnits(),
+                      builder: (context, AsyncSnapshot<List<Unit>> snapshot) {
+                        final units = snapshot.data ?? [];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                          child: FormElementWithIcon(
+                            icon: Icons.square_foot,
+                            label: 'Select a measurement unit',
+                            child: units.length > 0
+                                ? DropdownButtonFormField(
+                                value: _unitId,
+                                hint: Text('Unit'),
+                                onChanged: (unitId) => {
                                   setState(() {
-                                    _measurable = measurable;
+                                    _unitId = unitId;
                                   })
-                                }),
-                        Text('Measurable')
-                      ],
-                    ),
-                  ),
-                  if (_measurable)
-                    StreamBuilder(
-                        stream: unitDao.watchUnits(),
-                        builder: (context, AsyncSnapshot<List<Unit>> snapshot) {
-                          final units = snapshot.data ?? [];
-                          return Column(
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  if (units.length > 0)
-                                    Flexible(
-                                      child: DropdownButtonFormField(
-                                          value: _unitId,
-                                          hint: Text('Unit'),
-                                          onChanged: (unitId) => {
-                                                setState(() {
-                                                  _unitId = unitId;
-                                                })
-                                              },
-                                          validator: (value) => value == null &&
-                                                  _measurable
-                                              ? 'Please select a measurement unit!'
-                                              : null,
-                                          items: units
-                                              .map<DropdownMenuItem>((unit) {
-                                            return DropdownMenuItem(
-                                                value: unit.id,
-                                                child: Text(unit.name));
-                                          }).toList()),
-                                    ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 20.0),
-                                    child: ElevatedButton(
-                                      child: Text('Add new unit'),
-                                      onPressed: () {
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (_) => UnitFormScreen()));
-                                      },
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ],
-                          );
-                        }),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20.0),
-                    child: ElevatedButton(
-                      child: Text(
-                          (widget.eventWithUnit == null ? 'Create' : 'Save') +
-                              ' Event'),
-                      onPressed: () {
-                        if (_formKey.currentState.validate()) {
-                          final event = new Event(
-                              id: null,
-                              name: _nameController.text,
-                              description: _descriptionController.text,
-                              unitId: _unitId,
-                              createdAt: widget.eventWithUnit == null
-                                  ? DateTime.now()
-                                  : widget.eventWithUnit.event.createdAt,
-                              modifiedAt: DateTime.now()
-                          );
-                          if (widget.eventWithUnit == null) {
-                            eventDao.insertEvent(event);
-                          } else {
-                            eventDao.updateEvent(event);
-                          }
-                          Navigator.of(context).pop();
-                        }
-                      },
-                    ),
-                  )
-                ],
-              )),
-        ),
+                                },
+                                validator: (value) => value == null &&
+                                    _measurable
+                                    ? 'Please select a measurement unit!'
+                                    : null,
+                                items: units
+                                    .map<DropdownMenuItem>((unit) {
+                                  return DropdownMenuItem(
+                                      value: unit.id,
+                                      child: Text(unit.name));
+                                }).toList())
+                                : null,
+                            trailing: Padding(
+                              padding: const EdgeInsets.only(top: 10.0),
+                              child: ElevatedButton(
+                                    child: Text('Add new unit'),
+                                    onPressed: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (_) => UnitFormScreen()));
+                                    },
+                                  ),
+                            )
+                          ),
+                        );
+                      }),
+              ],
+            )),
       ),
     );
   }

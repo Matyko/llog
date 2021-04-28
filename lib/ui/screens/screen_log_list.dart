@@ -111,7 +111,6 @@ class _LogListScreenState extends State<LogListScreen> {
                             ),
                             child: Center(
                               child: EventPicker(
-                                hasUnderline: false,
                                 showNull: true,
                                 eventWithUnit: _eventWithUnit,
                                 onChange: (EventWithUnit eventWithUnit) {
