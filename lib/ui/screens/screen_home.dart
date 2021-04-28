@@ -79,7 +79,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   _goToLogFormScreen(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => LogFormScreen()));
+    showModalBottomSheet(
+      isScrollControlled: true,
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (context) => Container(
+          height: MediaQuery.of(context).size.height * 0.75,
+          child: LogFormScreen(),
+        ),
+    );
+    // Navigator.push(context, MaterialPageRoute(builder: (_) => LogFormScreen()));
   }
 
   _goToUnitFormScreen(BuildContext context) {

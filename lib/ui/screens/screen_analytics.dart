@@ -45,14 +45,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                           title: logsWithEventAndUnit.length.toString(),
                           content: Text('Times this event was logged.')
                         ),
-                        if (widget.eventWithUnit.unit != null) StreamBuilder<double>(
+                        if (widget.eventWithUnit.unit != null && widget.eventWithUnit.event.showSum) StreamBuilder<double>(
                             stream: logDao.getValueSumForEvent(
                                 widget.eventWithUnit.event.id),
                             builder: (context, snapshot) {
                               double sum = snapshot.data ?? 0;
                               return AnalyticsCard(
                                 indicator: Icon(Icons.all_inclusive, color: Theme.of(context).primaryColorDark,),
-                                title: '${sum.toString()} ${widget.eventWithUnit.unit.name}',
+                                title: '${double.parse((sum).toStringAsFixed(2)).toString()} ${widget.eventWithUnit.unit.name}',
                                 content: Text('Sum of all logged values.')
                               );
                             }),

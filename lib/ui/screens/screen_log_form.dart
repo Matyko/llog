@@ -38,7 +38,14 @@ class _LogFormScreenState extends State<LogFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text((widget.logData == null ? 'Create' : 'Edit') + ' Log'),
+          leading: IconButton(
+            icon: Icon(Icons.clear, color: Theme.of(context).primaryColor),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          title: Text((widget.logData == null ? 'Add' : 'Edit') + ' Log',
+              style: TextStyle(
+                color: Theme.of(context).primaryColor,
+              )),
           actions: [
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -65,29 +72,27 @@ class _LogFormScreenState extends State<LogFormScreen> {
                                         _eventWithUnit = eventWithUnit;
                                       })),
                               icon: Icons.playlist_add,
-                              label: 'Event')
-                          ),
+                              label: 'Event')),
                       Divider(
                         color: Colors.grey.shade600,
                       ),
                       Padding(
                         padding: const EdgeInsets.all(20.0),
-                        child:
-                          FormElementWithIcon(
-                            icon: Icons.event,
-                            label: 'Date',
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 15.0),
-                              child: InkWell(
-                                onTap: () => _openDatePicker(context),
-                                child: Text(
-                                  dateFormat.format(_date),
-                                  style: TextStyle(
-                                      color: Theme.of(context).primaryColor),
-                                ),
+                        child: FormElementWithIcon(
+                          icon: Icons.event,
+                          label: 'Date',
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 15.0),
+                            child: InkWell(
+                              onTap: () => _openDatePicker(context),
+                              child: Text(
+                                dateFormat.format(_date),
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColor),
                               ),
                             ),
                           ),
+                        ),
                       ),
                       if (_eventWithUnit != null && _eventWithUnit.unit != null)
                         Divider(
@@ -102,8 +107,7 @@ class _LogFormScreenState extends State<LogFormScreen> {
                             trailing: Text(_eventWithUnit.unit.name),
                             child: TextFormField(
                               decoration: InputDecoration(
-                                  hintText:
-                                  "Enter a measurement value"),
+                                  hintText: "Enter a measurement value"),
                               keyboardType: TextInputType.number,
                               inputFormatters: [
                                 FilteringTextInputFormatter.allow(

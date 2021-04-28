@@ -299,9 +299,7 @@ class _LogListScreenState extends State<LogListScreen> {
       padding: EdgeInsets.symmetric(vertical: 8),
       indicator: Container(
         decoration: BoxDecoration(
-          color: Theme
-              .of(context)
-              .primaryColor,
+          color: Colors.transparent,
           borderRadius: const BorderRadius.all(
             Radius.circular(8),
           ),
@@ -312,7 +310,7 @@ class _LogListScreenState extends State<LogListScreen> {
             Text(dateFormat.format(logWithEventAndUnit.log.date),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold)),
+                    color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
           ],
         ),
       ),

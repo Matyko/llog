@@ -444,6 +444,8 @@ class Event extends DataClass implements Insertable<Event> {
   final DateTime createdAt;
   final DateTime modifiedAt;
   final DateTime deletedAt;
+  final bool showSum;
+  final bool showChange;
   final String name;
   final String description;
   final int unitId;
@@ -452,6 +454,8 @@ class Event extends DataClass implements Insertable<Event> {
       @required this.createdAt,
       @required this.modifiedAt,
       this.deletedAt,
+      @required this.showSum,
+      @required this.showChange,
       @required this.name,
       this.description,
       this.unitId});
@@ -460,6 +464,7 @@ class Event extends DataClass implements Insertable<Event> {
     final effectivePrefix = prefix ?? '';
     final intType = db.typeSystem.forDartType<int>();
     final dateTimeType = db.typeSystem.forDartType<DateTime>();
+    final boolType = db.typeSystem.forDartType<bool>();
     final stringType = db.typeSystem.forDartType<String>();
     return Event(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
@@ -469,6 +474,10 @@ class Event extends DataClass implements Insertable<Event> {
           .mapFromDatabaseResponse(data['${effectivePrefix}modified_at']),
       deletedAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
+      showSum:
+          boolType.mapFromDatabaseResponse(data['${effectivePrefix}show_sum']),
+      showChange: boolType
+          .mapFromDatabaseResponse(data['${effectivePrefix}show_change']),
       name: stringType.mapFromDatabaseResponse(data['${effectivePrefix}name']),
       description: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}description']),
@@ -490,6 +499,12 @@ class Event extends DataClass implements Insertable<Event> {
     }
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    if (!nullToAbsent || showSum != null) {
+      map['show_sum'] = Variable<bool>(showSum);
+    }
+    if (!nullToAbsent || showChange != null) {
+      map['show_change'] = Variable<bool>(showChange);
     }
     if (!nullToAbsent || name != null) {
       map['name'] = Variable<String>(name);
@@ -515,6 +530,12 @@ class Event extends DataClass implements Insertable<Event> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      showSum: showSum == null && nullToAbsent
+          ? const Value.absent()
+          : Value(showSum),
+      showChange: showChange == null && nullToAbsent
+          ? const Value.absent()
+          : Value(showChange),
       name: name == null && nullToAbsent ? const Value.absent() : Value(name),
       description: description == null && nullToAbsent
           ? const Value.absent()
@@ -532,6 +553,8 @@ class Event extends DataClass implements Insertable<Event> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       modifiedAt: serializer.fromJson<DateTime>(json['modifiedAt']),
       deletedAt: serializer.fromJson<DateTime>(json['deletedAt']),
+      showSum: serializer.fromJson<bool>(json['showSum']),
+      showChange: serializer.fromJson<bool>(json['showChange']),
       name: serializer.fromJson<String>(json['name']),
       description: serializer.fromJson<String>(json['description']),
       unitId: serializer.fromJson<int>(json['unitId']),
@@ -545,6 +568,8 @@ class Event extends DataClass implements Insertable<Event> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'modifiedAt': serializer.toJson<DateTime>(modifiedAt),
       'deletedAt': serializer.toJson<DateTime>(deletedAt),
+      'showSum': serializer.toJson<bool>(showSum),
+      'showChange': serializer.toJson<bool>(showChange),
       'name': serializer.toJson<String>(name),
       'description': serializer.toJson<String>(description),
       'unitId': serializer.toJson<int>(unitId),
@@ -556,6 +581,8 @@ class Event extends DataClass implements Insertable<Event> {
           DateTime createdAt,
           DateTime modifiedAt,
           DateTime deletedAt,
+          bool showSum,
+          bool showChange,
           String name,
           String description,
           int unitId}) =>
@@ -564,6 +591,8 @@ class Event extends DataClass implements Insertable<Event> {
         createdAt: createdAt ?? this.createdAt,
         modifiedAt: modifiedAt ?? this.modifiedAt,
         deletedAt: deletedAt ?? this.deletedAt,
+        showSum: showSum ?? this.showSum,
+        showChange: showChange ?? this.showChange,
         name: name ?? this.name,
         description: description ?? this.description,
         unitId: unitId ?? this.unitId,
@@ -575,6 +604,8 @@ class Event extends DataClass implements Insertable<Event> {
           ..write('createdAt: $createdAt, ')
           ..write('modifiedAt: $modifiedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('showSum: $showSum, ')
+          ..write('showChange: $showChange, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
           ..write('unitId: $unitId')
@@ -591,8 +622,14 @@ class Event extends DataClass implements Insertable<Event> {
               modifiedAt.hashCode,
               $mrjc(
                   deletedAt.hashCode,
-                  $mrjc(name.hashCode,
-                      $mrjc(description.hashCode, unitId.hashCode)))))));
+                  $mrjc(
+                      showSum.hashCode,
+                      $mrjc(
+                          showChange.hashCode,
+                          $mrjc(
+                              name.hashCode,
+                              $mrjc(description.hashCode,
+                                  unitId.hashCode)))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -601,6 +638,8 @@ class Event extends DataClass implements Insertable<Event> {
           other.createdAt == this.createdAt &&
           other.modifiedAt == this.modifiedAt &&
           other.deletedAt == this.deletedAt &&
+          other.showSum == this.showSum &&
+          other.showChange == this.showChange &&
           other.name == this.name &&
           other.description == this.description &&
           other.unitId == this.unitId);
@@ -611,6 +650,8 @@ class EventsCompanion extends UpdateCompanion<Event> {
   final Value<DateTime> createdAt;
   final Value<DateTime> modifiedAt;
   final Value<DateTime> deletedAt;
+  final Value<bool> showSum;
+  final Value<bool> showChange;
   final Value<String> name;
   final Value<String> description;
   final Value<int> unitId;
@@ -619,6 +660,8 @@ class EventsCompanion extends UpdateCompanion<Event> {
     this.createdAt = const Value.absent(),
     this.modifiedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.showSum = const Value.absent(),
+    this.showChange = const Value.absent(),
     this.name = const Value.absent(),
     this.description = const Value.absent(),
     this.unitId = const Value.absent(),
@@ -628,17 +671,23 @@ class EventsCompanion extends UpdateCompanion<Event> {
     @required DateTime createdAt,
     @required DateTime modifiedAt,
     this.deletedAt = const Value.absent(),
+    @required bool showSum,
+    @required bool showChange,
     @required String name,
     this.description = const Value.absent(),
     this.unitId = const Value.absent(),
   })  : createdAt = Value(createdAt),
         modifiedAt = Value(modifiedAt),
+        showSum = Value(showSum),
+        showChange = Value(showChange),
         name = Value(name);
   static Insertable<Event> custom({
     Expression<int> id,
     Expression<DateTime> createdAt,
     Expression<DateTime> modifiedAt,
     Expression<DateTime> deletedAt,
+    Expression<bool> showSum,
+    Expression<bool> showChange,
     Expression<String> name,
     Expression<String> description,
     Expression<int> unitId,
@@ -648,6 +697,8 @@ class EventsCompanion extends UpdateCompanion<Event> {
       if (createdAt != null) 'created_at': createdAt,
       if (modifiedAt != null) 'modified_at': modifiedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (showSum != null) 'show_sum': showSum,
+      if (showChange != null) 'show_change': showChange,
       if (name != null) 'name': name,
       if (description != null) 'description': description,
       if (unitId != null) 'unit_id': unitId,
@@ -659,6 +710,8 @@ class EventsCompanion extends UpdateCompanion<Event> {
       Value<DateTime> createdAt,
       Value<DateTime> modifiedAt,
       Value<DateTime> deletedAt,
+      Value<bool> showSum,
+      Value<bool> showChange,
       Value<String> name,
       Value<String> description,
       Value<int> unitId}) {
@@ -667,6 +720,8 @@ class EventsCompanion extends UpdateCompanion<Event> {
       createdAt: createdAt ?? this.createdAt,
       modifiedAt: modifiedAt ?? this.modifiedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      showSum: showSum ?? this.showSum,
+      showChange: showChange ?? this.showChange,
       name: name ?? this.name,
       description: description ?? this.description,
       unitId: unitId ?? this.unitId,
@@ -688,6 +743,12 @@ class EventsCompanion extends UpdateCompanion<Event> {
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
+    if (showSum.present) {
+      map['show_sum'] = Variable<bool>(showSum.value);
+    }
+    if (showChange.present) {
+      map['show_change'] = Variable<bool>(showChange.value);
+    }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
@@ -707,6 +768,8 @@ class EventsCompanion extends UpdateCompanion<Event> {
           ..write('createdAt: $createdAt, ')
           ..write('modifiedAt: $modifiedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('showSum: $showSum, ')
+          ..write('showChange: $showChange, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
           ..write('unitId: $unitId')
@@ -765,6 +828,30 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
     );
   }
 
+  final VerificationMeta _showSumMeta = const VerificationMeta('showSum');
+  GeneratedBoolColumn _showSum;
+  @override
+  GeneratedBoolColumn get showSum => _showSum ??= _constructShowSum();
+  GeneratedBoolColumn _constructShowSum() {
+    return GeneratedBoolColumn(
+      'show_sum',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _showChangeMeta = const VerificationMeta('showChange');
+  GeneratedBoolColumn _showChange;
+  @override
+  GeneratedBoolColumn get showChange => _showChange ??= _constructShowChange();
+  GeneratedBoolColumn _constructShowChange() {
+    return GeneratedBoolColumn(
+      'show_change',
+      $tableName,
+      false,
+    );
+  }
+
   final VerificationMeta _nameMeta = const VerificationMeta('name');
   GeneratedTextColumn _name;
   @override
@@ -798,8 +885,17 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
   }
 
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, createdAt, modifiedAt, deletedAt, name, description, unitId];
+  List<GeneratedColumn> get $columns => [
+        id,
+        createdAt,
+        modifiedAt,
+        deletedAt,
+        showSum,
+        showChange,
+        name,
+        description,
+        unitId
+      ];
   @override
   $EventsTable get asDslTable => this;
   @override
@@ -831,6 +927,20 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
     if (data.containsKey('deleted_at')) {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableOrUnknown(data['deleted_at'], _deletedAtMeta));
+    }
+    if (data.containsKey('show_sum')) {
+      context.handle(_showSumMeta,
+          showSum.isAcceptableOrUnknown(data['show_sum'], _showSumMeta));
+    } else if (isInserting) {
+      context.missing(_showSumMeta);
+    }
+    if (data.containsKey('show_change')) {
+      context.handle(
+          _showChangeMeta,
+          showChange.isAcceptableOrUnknown(
+              data['show_change'], _showChangeMeta));
+    } else if (isInserting) {
+      context.missing(_showChangeMeta);
     }
     if (data.containsKey('name')) {
       context.handle(
