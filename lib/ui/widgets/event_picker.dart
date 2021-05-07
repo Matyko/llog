@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:llog/data/moor_database.dart';
+import 'package:llog/ui/screens/screen_event_form.dart';
 import 'package:moor_flutter/moor_flutter.dart' as moor;
 import 'package:provider/provider.dart';
 
@@ -7,8 +8,13 @@ class EventPicker extends StatefulWidget {
   final EventWithUnit eventWithUnit;
   final Function onChange;
   final bool showNull;
+  final bool showAdd;
 
-  const EventPicker({this.eventWithUnit, this.onChange, this.showNull = false});
+  const EventPicker(
+      {this.eventWithUnit,
+      this.onChange,
+      this.showNull = false,
+      this.showAdd = false});
 
   @override
   _EventPickerState createState() => _EventPickerState();
@@ -30,26 +36,18 @@ class _EventPickerState extends State<EventPicker> {
     final eventDao = Provider.of<AppDatabase>(context).eventDao;
     return StreamBuilder(
         stream: eventDao.watchEvents(moor.OrderingMode.asc),
-        builder: (context,
-            AsyncSnapshot<List<EventWithUnit>> snapshot) {
+        builder: (context, AsyncSnapshot<List<EventWithUnit>> snapshot) {
           final eventsWithUnits = snapshot.data ?? [];
-          final items = eventsWithUnits
-              .map<DropdownMenuItem>(
-                  (eventWithUnit) {
-                return DropdownMenuItem(
-                    value: eventWithUnit.event.id,
-                    child: Text(eventWithUnit
-                        .event.name +
-                        (eventWithUnit.unit != null
-                            ? ' (${eventWithUnit.unit.name})'
-                            : '')));
-              }).toList();
-          if (widget.showNull) items.add(
-            DropdownMenuItem(
-              value: null,
-              child: Text('None')
-            )
-          );
+          final items = eventsWithUnits.map<DropdownMenuItem>((eventWithUnit) {
+            return DropdownMenuItem(
+                value: eventWithUnit.event.id,
+                child: Text(eventWithUnit.event.name +
+                    (eventWithUnit.unit != null
+                        ? ' (${eventWithUnit.unit.name})'
+                        : '')));
+          }).toList();
+          if (widget.showNull)
+            items.add(DropdownMenuItem(value: null, child: Text('None')));
           return Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -57,13 +55,12 @@ class _EventPickerState extends State<EventPicker> {
                 Flexible(
                   child: DropdownButtonFormField(
                       value: (_eventWithUnit != null &&
-                          _eventWithUnit.event != null)
+                              _eventWithUnit.event != null)
                           ? _eventWithUnit.event.id
                           : null,
                       decoration: InputDecoration(
                         enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.transparent)
-                        ),
+                            borderSide: BorderSide(color: Colors.transparent)),
                       ),
                       hint: Text('Select event'),
                       onChanged: (id) {
@@ -75,19 +72,23 @@ class _EventPickerState extends State<EventPicker> {
                         }
                         setState(() {
                           _eventWithUnit = eventsWithUnits
-                              .firstWhere((element) =>
-                          element.event.id ==
-                              id);
+                              .firstWhere((element) => element.event.id == id);
                         });
                         if (widget.onChange != null) {
                           widget.onChange(_eventWithUnit);
                         }
                       },
-                      validator: (value) => value == null
-                          ? 'Please select an event!'
-                          : null,
+                      validator: (value) =>
+                          value == null ? 'Please select an event!' : null,
                       items: items),
                 ),
+              if (widget.showAdd)
+                IconButton(
+                    onPressed: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => EventFormScreen()));
+                    },
+                    icon: Icon(Icons.add))
             ],
           );
         });

@@ -7,6 +7,7 @@ class Events extends Table {
   DateTimeColumn get deletedAt => dateTime().nullable()();
   BoolColumn get showSum => boolean()();
   BoolColumn get showChange => boolean()();
+  BoolColumn get isFavourite => boolean()();
   TextColumn get name => text().withLength(min: 1, max: 50)();
   TextColumn get description => text().withLength(min: 0, max: 250).nullable()();
   IntColumn get unitId => integer().nullable()();

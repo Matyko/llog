@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:llog/data/moor_database.dart';
 import 'package:llog/ui/screens/screen_analytics.dart';
 import 'package:llog/ui/screens/screen_event_form.dart';
+import 'package:llog/ui/widgets/llog_bottom_navigation.dart';
 import 'package:llog/ui/widgets/llog_dismissible.dart';
 import 'package:moor_flutter/moor_flutter.dart' as moor;
 import 'package:provider/provider.dart';
@@ -17,8 +18,21 @@ class _EventListScreenState extends State<EventListScreen> {
   @override
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [Expanded(child: _buildEventList(context))],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Your events'),
+      ),
+      body: Column(
+        children: [Expanded(child: _buildEventList(context))],
+      ),
+      bottomNavigationBar: LlogBottomNavigation(currentIndex: 2),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (_) => EventFormScreen()));
+        },
+        child: Icon(Icons.event_note),
+      ),
     );
   }
 
@@ -88,6 +102,9 @@ class _EventListScreenState extends State<EventListScreen> {
               modifiedAt: eventWithUnit.event.modifiedAt,
               deletedAt: DateTime.now(),
               name: eventWithUnit.event.name,
+              showChange: eventWithUnit.event.showChange,
+              showSum: eventWithUnit.event.showSum,
+              isFavourite: eventWithUnit.event.isFavourite,
               description: eventWithUnit.event.description,
               unitId: eventWithUnit.event.unitId);
           eventDao.updateEvent(eventWithDeletedAt);
@@ -106,9 +123,29 @@ class _EventListScreenState extends State<EventListScreen> {
                     children: [
                       Text(eventWithUnit.event.name,
                           style: TextStyle(
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w500,
                               fontSize: 20,
                               color: Theme.of(context).primaryColor)),
+                      if (eventWithUnit.event.description != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Tooltip(
+                            message: 'Description',
+                            child: Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 5.0),
+                                  child: Icon(Icons.event_note,
+                                      size: 18, color: Colors.grey.shade700),
+                                ),
+                                Text(eventWithUnit.event.description,
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey.shade700)),
+                              ],
+                            ),
+                          ),
+                        ),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: Tooltip(
@@ -149,12 +186,40 @@ class _EventListScreenState extends State<EventListScreen> {
                         ),
                     ],
                   ),
-                  IconButton(icon: Icon(Icons.analytics, size: 30, color: Theme.of(context).accentColor), onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => AnalyticsScreen(eventWithUnit))
-                    );
-                  })
+                  Column(
+                    children: [
+                      IconButton(
+                          icon: Icon(
+                            eventWithUnit.event.isFavourite
+                                ? Icons.favorite
+                                : Icons.favorite_outline,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                          onPressed: () {
+                            Event eventWithFavouriteFlipped = new Event(
+                                id: eventWithUnit.event.id,
+                                createdAt: eventWithUnit.event.createdAt,
+                                modifiedAt: eventWithUnit.event.modifiedAt,
+                                isFavourite: !eventWithUnit.event.isFavourite,
+                                showChange: eventWithUnit.event.showChange,
+                                showSum: eventWithUnit.event.showSum,
+                                name: eventWithUnit.event.name,
+                                description: eventWithUnit.event.description,
+                                unitId: eventWithUnit.event.unitId);
+                            eventDao.updateEvent(eventWithFavouriteFlipped);
+                          }),
+                      IconButton(
+                          icon: Icon(Icons.analytics,
+                              size: 30, color: Theme.of(context).accentColor),
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        AnalyticsScreen(eventWithUnit)));
+                          })
+                    ],
+                  ),
                 ],
               ),
             ),

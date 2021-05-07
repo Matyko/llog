@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:llog/ui/screens/screen_event_form.dart';
-import 'package:llog/ui/screens/screen_event_list.dart';
+import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
+import 'package:llog/data/moor_database.dart';
 import 'package:llog/ui/screens/screen_log_form.dart';
-import 'package:llog/ui/screens/screen_log_list.dart';
-import 'package:llog/ui/screens/screen_unit_form.dart';
-import 'package:llog/ui/screens/screen_unit_list.dart';
+import 'package:llog/ui/screens/screen_profile.dart';
+import 'package:llog/ui/screens/screen_settings.dart';
+import 'package:llog/ui/widgets/llog_bottom_navigation.dart';
+import 'package:moor_flutter/moor_flutter.dart' as moor;
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -12,95 +15,187 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<Widget> _children = [
-    LogListScreen(),
-    EventListScreen(),
-    UnitListScreen(),
-  ];
-
-  final List<String> _titles = ["Your Logs", "Your Events", "Your Units"];
-
-  final List<IconData> _icons = [Icons.post_add, Icons.event_note, Icons.add_chart];
-
-  int _currentIndex = 0;
-
   @override
   Widget build(BuildContext context) {
+    final eventDao = Provider.of<AppDatabase>(context).eventDao;
+    final logDao = Provider.of<AppDatabase>(context).logDao;
+    final dateFormat = new DateFormat('yyyy-MM-dd hh:mm');
     return Scaffold(
       appBar: AppBar(
-          title: Text(
-            _titles[_currentIndex],
-            style: TextStyle(color: Theme
-                .of(context)
-                .primaryColor),
-          )),
-      body: SafeArea(
-          child: _children[_currentIndex]),
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: onTapNavigation, // new
-        currentIndex: _currentIndex, // new
-        items: [
-          new BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Logs',
+          leading: IconButton(
+            icon: Icon(Icons.account_circle,
+                color: Theme.of(context).primaryColor),
+            onPressed: () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => ProfileScreen()));
+            },
           ),
-          new BottomNavigationBarItem(
-            icon: Icon(Icons.event),
-            label: 'Events',
-          ),
-          new BottomNavigationBarItem(
-              icon: Icon(Icons.straighten),
-              label: 'Units'
-          )
-        ],
-      ),
-      floatingActionButton: _icons[_currentIndex] != null
-          ? FloatingActionButton(
-        onPressed: () {
-          if (_currentIndex == 0) {
-            _goToLogFormScreen(context);
-          }
-          if (_currentIndex == 1) {
-            _goToEventFormScreen(context);
-          }
-          if (_currentIndex == 2) {
-            _goToUnitFormScreen(context);
-          }
-        },
-        child: Icon(_icons[_currentIndex]),
-      )
-          : null,
-    );
-  }
-
-  _goToEventFormScreen(BuildContext context) {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (_) => EventFormScreen()));
-  }
-
-  _goToLogFormScreen(BuildContext context) {
-    showModalBottomSheet(
-      isScrollControlled: true,
-        context: context,
-        backgroundColor: Colors.transparent,
-        builder: (context) => Container(
-          height: MediaQuery.of(context).size.height * 0.75,
-          child: LogFormScreen(),
+          title: Text('llog'),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.settings, color: Theme.of(context).primaryColor),
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => SettingsScreen()));
+              },
+            )
+          ]),
+      body: Container(
+        width: MediaQuery.of(context).size.width,
+        decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30), topRight: Radius.circular(30))),
+        child: ListView(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Text(
+                'Good ${greeting()}!',
+                style: TextStyle(
+                  fontFamily: 'PlayfairDisplay',
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Text('Favourite events'),
+            ),
+            StreamBuilder(
+                stream: eventDao.watchEvents(moor.OrderingMode.desc,
+                    isFavourite: true),
+                builder:
+                    (context, AsyncSnapshot<List<EventWithUnit>> snapshot) {
+                  final events = snapshot.data ?? [];
+                  return AnimatedOpacity(
+                      opacity:
+                          snapshot.connectionState == ConnectionState.waiting
+                              ? 0
+                              : 1,
+                      duration: Duration(milliseconds: 200),
+                      child: (events.length > 0)
+                          ? Wrap(
+                              children: _getFavourites(events, context),
+                            )
+                          : Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Text('You have no favourited events yet'),
+                            ));
+                }),
+            Divider(
+              color: Colors.grey.shade600,
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+              child: Text('Recent logs'),
+            ),
+            StreamBuilder(
+                stream: logDao.watchAllLogsWithLimit(moor.OrderingMode.desc, 5),
+                builder: (context,
+                    AsyncSnapshot<List<LogWithEventAndUnit>> snapshot) {
+                  final logs = snapshot.data ?? [];
+                  return AnimatedOpacity(
+                      opacity:
+                          snapshot.connectionState == ConnectionState.waiting
+                              ? 0
+                              : 1,
+                      duration: Duration(milliseconds: 200),
+                      child: (logs.length > 0)
+                          ? Container(
+                              height: 320,
+                              child: ListView.builder(
+                                  physics: NeverScrollableScrollPhysics(),
+                                  itemCount: logs.length,
+                                  itemBuilder: (_, index) {
+                                    return ListTile(
+                                        title: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0),
+                                          child: Text(logs[index].event.name),
+                                        ),
+                                        subtitle: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(dateFormat.format(
+                                                  logs[index].log.date)),
+                                              if (logs[index].unit != null)
+                                                Text(
+                                                    '${logs[index].log.value.toString()} ${logs[index].unit.name}'),
+                                            ],
+                                          ),
+                                        ));
+                                  }),
+                            )
+                          : Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Text('You have no logs yet!'),
+                            ));
+                }),
+          ],
         ),
+      ),
+      bottomNavigationBar: LlogBottomNavigation(currentIndex: 0),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.post_add),
+        onPressed: () {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (_) => LogFormScreen()));
+        },
+      ),
     );
-    // Navigator.push(context, MaterialPageRoute(builder: (_) => LogFormScreen()));
   }
 
-  _goToUnitFormScreen(BuildContext context) {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => UnitFormScreen()));
+  _getFavourites(List<EventWithUnit> events, BuildContext context) {
+    return events.map((eventWithUnit) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(eventWithUnit.event.name,
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text(eventWithUnit.event.description),
+                  ],
+                ),
+                IconButton(
+                  icon: Icon(Icons.add, color: Theme.of(context).primaryColor),
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) =>
+                                LogFormScreen(eventWithUnit: eventWithUnit)));
+                  },
+                )
+              ],
+            ),
+          ),
+        ),
+      );
+    }).toList();
   }
 
-  onTapNavigation(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+  String greeting() {
+    var hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Morning';
+    }
+    if (hour < 17) {
+      return 'Afternoon';
+    }
+    return 'Evening';
   }
 }

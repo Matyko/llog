@@ -58,17 +58,19 @@ class _EventFormScreenState extends State<EventFormScreen> {
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: ElevatedButton(
-              child: Text((widget.eventWithUnit == null ? 'Create' : 'Save') +
-                  ' Event'),
+              child: Text('Save'),
               onPressed: () {
                 if (_formKey.currentState.validate()) {
                   final event = new Event(
-                      id: null,
+                      id: widget.eventWithUnit == null
+                          ? null
+                          : widget.eventWithUnit.event.id,
                       name: _nameController.text,
                       description: _descriptionController.text,
                       unitId: _unitId,
                       showChange: _showChange,
                       showSum: _showSum,
+                      isFavourite: widget.eventWithUnit == null ? false : widget.eventWithUnit.event.isFavourite,
                       createdAt: widget.eventWithUnit == null
                           ? DateTime.now()
                           : widget.eventWithUnit.event.createdAt,
@@ -76,6 +78,7 @@ class _EventFormScreenState extends State<EventFormScreen> {
                   if (widget.eventWithUnit == null) {
                     eventDao.insertEvent(event);
                   } else {
+                    print(event);
                     eventDao.updateEvent(event);
                   }
                   Navigator.of(context).pop();
@@ -85,154 +88,158 @@ class _EventFormScreenState extends State<EventFormScreen> {
           )
         ],
       ),
-      body: SingleChildScrollView(
-        child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 80.0),
-                  child: Image(
-                    image: AssetImage('assets/images/plan_1.png'),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 10.0, horizontal: 20.0),
-                  child: FormElementWithIcon(
-                    icon: Icons.label,
-                    label: 'Event Name',
-                    child: TextFormField(
-                      decoration: InputDecoration(hintText: "Event name"),
-                      controller: _nameController,
-                      validator: (value) =>
-                          value.isEmpty ? 'Please enter an event name!' : null,
+      body: Container(
+        height: MediaQuery.of(context).size.height,
+        decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30)
+            ),
+        ),
+        child: SingleChildScrollView(
+          child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10.0, horizontal: 20.0),
+                    child: FormElementWithIcon(
+                      icon: Icons.label,
+                      label: 'Event Name',
+                      child: TextFormField(
+                        decoration: InputDecoration(hintText: "Event name"),
+                        controller: _nameController,
+                        validator: (value) =>
+                            value.isEmpty ? 'Please enter an event name!' : null,
+                      ),
                     ),
                   ),
-                ),
-                Divider(color: Colors.grey.shade700),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 10.0, horizontal: 20.0),
-                  child: FormElementWithIcon(
-                      icon: Icons.event_note,
-                      label: 'Event description',
-                      child: TextFormField(
-                        minLines: 1,
-                        maxLines: 4,
-                        decoration:
-                            InputDecoration(hintText: "Event description"),
-                        controller: _descriptionController,
-                      )),
-                ),
-                Divider(color: Colors.grey.shade700),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 10.0, horizontal: 20.0),
-                  child: FormElementWithIcon(
-                      label: 'Is this event measurable?',
-                      icon: Icons.straighten,
-                      child: Row(
-                        children: [
-                          Switch(
-                              value: _measurable,
-                              onChanged: (measurable) => {
-                                    setState(() {
-                                      _measurable = measurable;
-                                    })
-                                  }),
-                          Text('Measurable')
-                        ],
-                      )),
-                ),
-                if (_measurable)
-                  Column(
-                    children: [
-                      Divider(color: Colors.grey.shade700),
-                      StreamBuilder(
-                          stream: unitDao.watchUnits(),
-                          builder:
-                              (context, AsyncSnapshot<List<Unit>> snapshot) {
-                            final units = snapshot.data ?? [];
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 20.0),
-                              child: FormElementWithIcon(
-                                  icon: Icons.square_foot,
-                                  label: 'Select a measurement unit',
-                                  child: units.length > 0
-                                      ? DropdownButtonFormField(
-                                          value: _unitId,
-                                          hint: Text('Unit'),
-                                          onChanged: (unitId) => {
-                                                setState(() {
-                                                  _unitId = unitId;
-                                                })
-                                              },
-                                          validator: (value) => value == null &&
-                                                  _measurable
-                                              ? 'Please select a measurement unit!'
-                                              : null,
-                                          items: units
-                                              .map<DropdownMenuItem>((unit) {
-                                            return DropdownMenuItem(
-                                                value: unit.id,
-                                                child: Text(unit.name));
-                                          }).toList())
-                                      : null,
-                                  trailing: Padding(
-                                    padding: const EdgeInsets.only(top: 10.0),
-                                    child: ElevatedButton(
-                                      child: Text('Add new unit'),
-                                      onPressed: () {
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (_) =>
-                                                    UnitFormScreen()));
-                                      },
-                                    ),
-                                  )),
-                            );
-                          }),
-                      Divider(color: Colors.grey.shade700),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 10.0, horizontal: 20.0),
-                        child: FormElementWithIcon(
-                            label: 'Analytics settings',
-                            icon: Icons.settings,
-                            child: Column(children: [
-                              Row(
-                                children: [
-                                  Switch(
-                                      value: _showChange,
-                                      onChanged: (measurable) => {
-                                            setState(() {
-                                              _showChange = measurable;
-                                            })
-                                          }),
-                                  Text('Show changes')
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  Switch(
-                                      value: _showSum,
-                                      onChanged: (measurable) => {
-                                        setState(() {
-                                          _showSum = measurable;
-                                        })
-                                      }),
-                                  Text('Show sum')
-                                ],
-                              )
-                            ])),
-                      )
-                    ],
+                  Divider(color: Colors.grey.shade700),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10.0, horizontal: 20.0),
+                    child: FormElementWithIcon(
+                        icon: Icons.event_note,
+                        label: 'Event description',
+                        child: TextFormField(
+                          minLines: 1,
+                          maxLines: 4,
+                          decoration:
+                              InputDecoration(hintText: "Event description"),
+                          controller: _descriptionController,
+                        )),
                   ),
-              ],
-            )),
+                  Divider(color: Colors.grey.shade700),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10.0, horizontal: 20.0),
+                    child: FormElementWithIcon(
+                        label: 'Is this event measurable?',
+                        icon: Icons.straighten,
+                        child: Row(
+                          children: [
+                            Switch(
+                                value: _measurable,
+                                onChanged: (measurable) => {
+                                      setState(() {
+                                        _measurable = measurable;
+                                      })
+                                    }),
+                            Text('Measurable')
+                          ],
+                        )),
+                  ),
+                  if (_measurable)
+                    Column(
+                      children: [
+                        Divider(color: Colors.grey.shade700),
+                        StreamBuilder(
+                            stream: unitDao.watchUnits(),
+                            builder:
+                                (context, AsyncSnapshot<List<Unit>> snapshot) {
+                              final units = snapshot.data ?? [];
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 10.0, horizontal: 20.0),
+                                child: FormElementWithIcon(
+                                    icon: Icons.square_foot,
+                                    label: 'Select a measurement unit',
+                                    child: units.length > 0
+                                        ? DropdownButtonFormField(
+                                            value: _unitId,
+                                            hint: Text('Unit'),
+                                            onChanged: (unitId) => {
+                                                  setState(() {
+                                                    _unitId = unitId;
+                                                  })
+                                                },
+                                            validator: (value) => value == null &&
+                                                    _measurable
+                                                ? 'Please select a measurement unit!'
+                                                : null,
+                                            items: units
+                                                .map<DropdownMenuItem>((unit) {
+                                              return DropdownMenuItem(
+                                                  value: unit.id,
+                                                  child: Text(unit.name));
+                                            }).toList())
+                                        : null,
+                                    trailing: Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: IconButton(
+                                        icon: Icon(Icons.add),
+                                        onPressed: () {
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      UnitFormScreen()));
+                                        },
+                                      ),
+                                    )),
+                              );
+                            }),
+                        Divider(color: Colors.grey.shade700),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 10.0, horizontal: 20.0),
+                          child: FormElementWithIcon(
+                              label: 'Analytics settings',
+                              icon: Icons.settings,
+                              child: Column(children: [
+                                Row(
+                                  children: [
+                                    Switch(
+                                        value: _showChange,
+                                        onChanged: (measurable) => {
+                                              setState(() {
+                                                _showChange = measurable;
+                                              })
+                                            }),
+                                    Text('Show changes')
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Switch(
+                                        value: _showSum,
+                                        onChanged: (measurable) => {
+                                          setState(() {
+                                            _showSum = measurable;
+                                          })
+                                        }),
+                                    Text('Show sum')
+                                  ],
+                                )
+                              ])),
+                        )
+                      ],
+                    ),
+                ],
+              )),
+        ),
       ),
     );
   }

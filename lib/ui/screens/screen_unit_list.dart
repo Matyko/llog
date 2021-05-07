@@ -13,12 +13,27 @@ class _UnitListScreenState extends State<UnitListScreen> {
   @override
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [Expanded(child: _buildEventList(context))],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Your units'),
+      ),
+      body: Column(
+        children: [Expanded(child: _buildUnitList(context))],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => UnitFormScreen()));
+        },
+        child: Icon(Icons.add_chart),
+      ),
     );
+    // return Column(
+    //   children: [Expanded(child: _buildEventList(context))],
+    // );
   }
 
-  _buildEventList(BuildContext context) {
+  _buildUnitList(BuildContext context) {
     final unitDao = Provider.of<AppDatabase>(context).unitDao;
     return StreamBuilder(
         stream: unitDao.watchUnits(),
@@ -88,9 +103,17 @@ class _UnitListScreenState extends State<UnitListScreen> {
         },
         key: Key(unit.name),
         child: ListTile(
-          title: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Text(unit.name),
+          title: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(unit.name, style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(unit.description)
+                ],
+              ),
+            ),
           ),
         ));
   }

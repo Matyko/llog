@@ -52,7 +52,8 @@ class LogDao extends DatabaseAccessor<AppDatabase> with _$LogDaoMixin {
       {int eventId}) {
     return (select(logs)
           ..where(eventId != null
-              ? (table) => isNull(table.deletedAt) & table.eventId.equals(eventId)
+              ? (table) =>
+                  isNull(table.deletedAt) & table.eventId.equals(eventId)
               : (table) => isNull(table.deletedAt))
           ..orderBy([(t) => OrderingTerm(expression: t.date, mode: mode)]))
         .join([
@@ -68,16 +69,35 @@ class LogDao extends DatabaseAccessor<AppDatabase> with _$LogDaoMixin {
             }).toList());
   }
 
-  Stream<double> getValueSumForEvent(int eventId) {
-    final sumOfValues = logs.value.sum();
-    final query = selectOnly(logs)..addColumns([sumOfValues]);
-    return query.map((row) => row.read(sumOfValues)).watchSingle();
+  Stream<List<LogWithEventAndUnit>> watchAllLogsWithLimit(OrderingMode mode, int limit,
+      {int eventId}) {
+    return (select(logs)
+      ..where(eventId != null
+          ? (table) =>
+      isNull(table.deletedAt) & table.eventId.equals(eventId)
+          : (table) => isNull(table.deletedAt))
+      ..orderBy([(t) => OrderingTerm(expression: t.date, mode: mode)])
+      ..limit(limit)
+    )
+        .join([
+      leftOuterJoin(events, events.id.equalsExp(logs.eventId)),
+      leftOuterJoin(units, units.id.equalsExp(events.unitId))
+    ])
+        .watch()
+        .map((rows) => rows.map((row) {
+      return LogWithEventAndUnit(
+          log: row.readTable(logs),
+          event: row.readTable(events),
+          unit: row.readTable(units));
+    }).toList());
   }
 
-  Stream<double> getValueAvgForEvent(int eventId) {
-    final avgOfValues = logs.value.avg();
-    final query = selectOnly(logs)..addColumns([avgOfValues]);
-    return query.map((row) => row.read(avgOfValues)).watchSingle();
+  Stream<double> getValueSumForEvent(int eventId) {
+    final sumOfValues = logs.value.sum();
+    final query =
+        (selectOnly(logs)..where(isNull(logs.deletedAt) & logs.eventId.equals(eventId)))
+          ..addColumns([sumOfValues]);
+    return query.map((row) => row.read(sumOfValues)).watchSingle();
   }
 
   Future insertLog(Insertable<Log> log) => into(logs).insert(log);
@@ -93,9 +113,14 @@ class EventDao extends DatabaseAccessor<AppDatabase> with _$EventDaoMixin {
 
   EventDao(this.db) : super(db);
 
-  Stream<List<EventWithUnit>> watchEvents(OrderingMode mode) {
+  Stream<List<EventWithUnit>> watchEvents(OrderingMode mode,
+      {bool isFavourite}) {
     return (select(events)
-          ..where((table) => isNull(table.deletedAt))
+          ..where(isFavourite != null
+              ? (table) =>
+                  isNull(table.deletedAt) &
+                  table.isFavourite.equals(isFavourite)
+              : (table) => isNull(table.deletedAt))
           ..orderBy([(t) => OrderingTerm(expression: t.name, mode: mode)]))
         .join([leftOuterJoin(units, units.id.equalsExp(events.unitId))])
         .watch()
@@ -119,8 +144,7 @@ class UnitDao extends DatabaseAccessor<AppDatabase> with _$UnitDaoMixin {
   UnitDao(this.db) : super(db);
 
   Stream<List<Unit>> watchUnits() =>
-      (select(units)..where((table) => isNull(table.deletedAt)))
-          .watch();
+      (select(units)..where((table) => isNull(table.deletedAt))).watch();
 
   Future insertUnit(Insertable<Unit> unit) => into(units).insert(unit);
 
@@ -137,8 +161,7 @@ class ReminderDao extends DatabaseAccessor<AppDatabase>
   ReminderDao(this.db) : super(db);
 
   Stream<List<Reminder>> watchReminders() =>
-      (select(reminders)..where((table) => isNull(table.deletedAt)))
-          .watch();
+      (select(reminders)..where((table) => isNull(table.deletedAt))).watch();
 
   Future insertReminder(Insertable<Reminder> reminder) =>
       into(reminders).insert(reminder);

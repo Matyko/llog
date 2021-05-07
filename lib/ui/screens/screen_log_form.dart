@@ -8,8 +8,9 @@ import 'package:provider/provider.dart';
 
 class LogFormScreen extends StatefulWidget {
   final LogWithEventAndUnit logData;
+  final EventWithUnit eventWithUnit;
 
-  LogFormScreen({this.logData});
+  LogFormScreen({this.logData, this.eventWithUnit});
 
   @override
   _LogFormScreenState createState() => _LogFormScreenState();
@@ -25,11 +26,15 @@ class _LogFormScreenState extends State<LogFormScreen> {
 
   @override
   void initState() {
-    if (widget.logData != null && widget.logData.log.value != null) {
-      _valueController.text = widget.logData.log.value.toString();
-      _date = widget.logData.log.createdAt;
+    if (widget.logData != null) {
+      _date = widget.logData.log.date;
       _eventWithUnit = new EventWithUnit(
           event: widget.logData.event, unit: widget.logData.unit);
+      if (widget.logData.log.value != null) {
+        _valueController.text = widget.logData.log.value.toString();
+      }
+    } else if (widget.eventWithUnit != null) {
+      _eventWithUnit = widget.eventWithUnit;
     }
     super.initState();
   }
@@ -67,6 +72,7 @@ class _LogFormScreenState extends State<LogFormScreen> {
                           child: FormElementWithIcon(
                               child: EventPicker(
                                   eventWithUnit: _eventWithUnit,
+                                  showAdd: true,
                                   onChange: (EventWithUnit eventWithUnit) =>
                                       setState(() {
                                         _eventWithUnit = eventWithUnit;
@@ -88,7 +94,7 @@ class _LogFormScreenState extends State<LogFormScreen> {
                               child: Text(
                                 dateFormat.format(_date),
                                 style: TextStyle(
-                                    color: Theme.of(context).primaryColor),
+                                    fontSize: 16),
                               ),
                             ),
                           ),
@@ -132,7 +138,7 @@ class _LogFormScreenState extends State<LogFormScreen> {
           id: widget.logData != null ? widget.logData.log.id : null,
           eventId: _eventWithUnit.event.id,
           date: _date,
-          value: double.parse(_valueController.text),
+          value: _eventWithUnit.unit == null ? null : double.parse(_valueController.text),
           createdAt: widget.logData == null
               ? DateTime.now()
               : widget.logData.log.createdAt,

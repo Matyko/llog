@@ -32,7 +32,7 @@ class _UnitFormScreenState extends State<UnitFormScreen> {
     final unitDao = Provider.of<AppDatabase>(context, listen: false).unitDao;
     return Scaffold(
       appBar: AppBar(
-        title: Text((widget.unit == null ? 'Create' : 'Edit') + ' Event'),
+        title: Text((widget.unit == null ? 'Add' : 'Edit') + ' Unit'),
         actions: [
           Padding(
             padding: const EdgeInsets.all(10.0),
@@ -40,7 +40,7 @@ class _UnitFormScreenState extends State<UnitFormScreen> {
                 onPressed: () async {
                   if (_unitFormKey.currentState.validate()) {
                     Unit unit = new Unit(
-                        id: null,
+                        id: widget.unit == null ? null : widget.unit.id,
                         name: _unitNameController.text,
                         description: _unitDescriptionController.text,
                         createdAt: widget.unit == null
@@ -59,43 +59,53 @@ class _UnitFormScreenState extends State<UnitFormScreen> {
           )
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(top: 20.0),
-        child: Form(
-          key: _unitFormKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: FormElementWithIcon(
-                  icon: Icons.label,
-                  label: 'Unit name',
-                  child: TextFormField(
-                    decoration: InputDecoration(hintText: "Unit name"),
-                    controller: _unitNameController,
-                    validator: (value) =>
-                        value.isEmpty ? 'Please enter a unit name!' : null,
+      body: Container(
+        height: MediaQuery.of(context).size.height,
+        decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30)
+            )
+        ),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 20.0),
+          child: Form(
+            key: _unitFormKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: FormElementWithIcon(
+                    icon: Icons.label,
+                    label: 'Unit name',
+                    child: TextFormField(
+                      decoration: InputDecoration(hintText: "Unit name"),
+                      controller: _unitNameController,
+                      validator: (value) =>
+                          value.isEmpty ? 'Please enter a unit name!' : null,
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10.0),
-                child: Divider(color: Colors.grey.shade700),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: FormElementWithIcon(
-                  icon: Icons.note_add,
-                  label: 'Unit description',
-                  child: TextFormField(
-                    decoration: InputDecoration(hintText: "Unit description"),
-                    controller: _unitDescriptionController,
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                  child: Divider(color: Colors.grey.shade700),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: FormElementWithIcon(
+                    icon: Icons.note_add,
+                    label: 'Unit description',
+                    child: TextFormField(
+                      decoration: InputDecoration(hintText: "Unit description"),
+                      controller: _unitDescriptionController,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:llog/data/moor_database.dart';
 import 'package:llog/ui/screens/screen_log_form.dart';
 import 'package:llog/ui/widgets/event_picker.dart';
+import 'package:llog/ui/widgets/llog_bottom_navigation.dart';
 import 'package:llog/ui/widgets/llog_dismissible.dart';
 import 'package:moor_flutter/moor_flutter.dart' as moor;
 import 'package:provider/provider.dart';
@@ -19,15 +20,45 @@ class _LogListScreenState extends State<LogListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [Expanded(child: _buildLogList(context))],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Your logs'),
+        actions: [
+          IconButton(icon: Icon(
+              _eventWithUnit == null ? Icons.filter_alt_outlined : Icons.filter_alt,
+              color: Theme.of(context).primaryColor
+          ), onPressed: () {
+            showFilterOptions(context);
+          })
+        ]
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30)
+          )
+        ),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 25.0),
+          child: Column(
+            children: [Expanded(child: _buildLogList(context))],
+          ),
+        ),
+      ),
+      bottomNavigationBar: LlogBottomNavigation(currentIndex: 1),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showLogForm(context);
+        },
+        child: Icon(Icons.post_add),
+      ),
     );
   }
 
   _buildLogList(BuildContext context) {
-    final logDao = Provider
-        .of<AppDatabase>(context)
-        .logDao;
+    final logDao = Provider.of<AppDatabase>(context).logDao;
     return StreamBuilder(
         stream: logDao.watchAllLogs(moor.OrderingMode.desc,
             eventId: _eventWithUnit == null ? null : _eventWithUnit.event.id),
@@ -35,139 +66,53 @@ class _LogListScreenState extends State<LogListScreen> {
           final logs = snapshot.data ?? [];
           return AnimatedOpacity(
             opacity:
-            snapshot.connectionState == ConnectionState.waiting ? 0 : 1,
+                snapshot.connectionState == ConnectionState.waiting ? 0 : 1,
             duration: Duration(milliseconds: 200),
             child: (logs.length > 0)
                 ? Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Colors.grey.shade500
-                      )
-                    )
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 0,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 10),
-                            height: 45,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.grey.shade500
-                              ),
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(4),
-                                bottomLeft: Radius.circular(4),
-                                topRight: Radius.circular(_showFilters ? 0 : 4),
-                                bottomRight: Radius.circular(_showFilters ? 0 : 4)
-                              )
-                            ),
-                            child: Center(child: TextButton(
-                                style: TextButton.styleFrom(
-                                  primary: _showFilters ? Theme.of(context).primaryColor : Colors.grey.shade500
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _showFilters = !_showFilters;
-                                  });
-                                  if (!_showFilters) {
-                                    _eventWithUnit = null;
-                                  }
-                                },
-                                child: Row(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 10.0),
-                                      child: Text('Filter'),
-                                    ),
-                                    Icon(Icons.tune)
-                                  ],
-                                )
-                            )),
-                          ),
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: ListView.builder(
+                          itemCount: logs.length,
+                          itemBuilder: (_, index) {
+                            final itemLog = logs[index];
+                            return _buildLogItem(itemLog, logDao, index, logs);
+                          },
                         ),
-                        _showFilters ? Expanded(
-                          flex: 1,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 10),
-                            height: 45,
-                            decoration: BoxDecoration(
-                                border: Border.all(
-                                    color: Colors.grey.shade500
-                                ),
-                                borderRadius: BorderRadius.only(
-                                    topRight: Radius.circular(4),
-                                    bottomRight: Radius.circular(4),
-                                    topLeft: Radius.circular(_showFilters ? 0 : 4),
-                                    bottomLeft: Radius.circular(_showFilters ? 0 : 4)
-                                )
-                            ),
-                            child: Center(
-                              child: EventPicker(
-                                showNull: true,
-                                eventWithUnit: _eventWithUnit,
-                                onChange: (EventWithUnit eventWithUnit) {
-                                  print(eventWithUnit);
-                                  setState(() {
-                                    _eventWithUnit = eventWithUnit;
-                                  });
-                                },
-                              ),
-                            ),
-                          ),
-                        ) : Container()
-                      ],
-                    ),
-                  ),
-                ),
-                Flexible(
-                  child: ListView.builder(
-                    itemCount: logs.length,
-                    itemBuilder: (_, index) {
-                      final itemLog = logs[index];
-                      return _buildLogItem(itemLog, logDao, index, logs);
-                    },
-                  ),
-                ),
-              ],
-            )
+                      ),
+                    ],
+                  )
                 : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 60.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image(
-                    image: AssetImage('assets/images/events_1.png'),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 60.0),
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          'Nothing to show yet...',
-                          style: TextStyle(
-                              fontSize: 20, color: Colors.grey.shade400),
-                          textAlign: TextAlign.center,
+                        Image(
+                          image: AssetImage('assets/images/events_1.png'),
                         ),
-                        Text(
-                          'Log your first event!',
-                          style: TextStyle(
-                              fontSize: 20, color: Colors.grey.shade400),
-                          textAlign: TextAlign.center,
+                        Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Nothing to show yet...',
+                                style: TextStyle(
+                                    fontSize: 20, color: Colors.grey.shade400),
+                                textAlign: TextAlign.center,
+                              ),
+                              Text(
+                                'Log your first event!',
+                                style: TextStyle(
+                                    fontSize: 20, color: Colors.grey.shade400),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
           );
         });
   }
@@ -191,16 +136,8 @@ class _LogListScreenState extends State<LogListScreen> {
         isFirst: index == 0,
         isLast: index == logs.length - 1,
         hasIndicator: hasIndicator,
-        afterLineStyle: LineStyle(
-            color: Theme
-                .of(context)
-                .primaryColor
-        ),
-        beforeLineStyle: LineStyle(
-            color: Theme
-                .of(context)
-                .primaryColor
-        ),
+        afterLineStyle: LineStyle(color: Theme.of(context).primaryColor),
+        beforeLineStyle: LineStyle(color: Theme.of(context).primaryColor),
         indicatorStyle: hasIndicator
             ? _indicatorStyle(logWithEventAndUnit)
             : IndicatorStyle(width: 0),
@@ -224,9 +161,7 @@ class _LogListScreenState extends State<LogListScreen> {
               logDao.updateLog(log);
             },
             child: Container(
-              color: Theme
-                  .of(context)
-                  .backgroundColor,
+              color: Theme.of(context).backgroundColor,
               child: Padding(
                 padding: EdgeInsets.all(10.0),
                 child: Padding(
@@ -249,16 +184,13 @@ class _LogListScreenState extends State<LogListScreen> {
                       if (logWithEventAndUnit.log.value != null)
                         Container(
                             decoration: BoxDecoration(
-                                color: Theme
-                                    .of(context)
-                                    .accentColor,
-                                borderRadius: BorderRadius.all(Radius.circular(
-                                    4))),
+                                color: Theme.of(context).accentColor,
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(4))),
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text(
-                                '${logWithEventAndUnit.log
-                                    .value} ${logWithEventAndUnit.unit.name}',
+                                '${logWithEventAndUnit.log.value} ${logWithEventAndUnit.unit.name}',
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold),
@@ -310,10 +242,62 @@ class _LogListScreenState extends State<LogListScreen> {
             Text(dateFormat.format(logWithEventAndUnit.log.date),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.w500)),
           ],
         ),
       ),
+    );
+  }
+
+  _showLogForm(BuildContext context) {
+    showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.75,
+        child: LogFormScreen(),
+      ),
+    );
+    // Navigator.push(context, MaterialPageRoute(builder: (_) => LogFormScreen()));
+  }
+
+  showFilterOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: 150,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(8),
+            topRight: Radius.circular(8),
+          ),
+          color: Colors.white,
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 20.0),
+              child: Text('Select an event to filter by', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: EventPicker(
+                showNull: true,
+                eventWithUnit: _eventWithUnit,
+                onChange: (EventWithUnit eventWithUnit) {
+                  setState(() {
+                    _eventWithUnit = eventWithUnit;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+          ],
+        ),
+      )
     );
   }
 }

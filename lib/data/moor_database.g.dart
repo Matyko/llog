@@ -17,7 +17,7 @@ class Log extends DataClass implements Insertable<Log> {
   final int eventId;
   Log(
       {@required this.id,
-      @required this.value,
+      this.value,
       @required this.date,
       @required this.createdAt,
       @required this.modifiedAt,
@@ -194,14 +194,13 @@ class LogsCompanion extends UpdateCompanion<Log> {
   });
   LogsCompanion.insert({
     this.id = const Value.absent(),
-    @required double value,
+    this.value = const Value.absent(),
     @required DateTime date,
     @required DateTime createdAt,
     @required DateTime modifiedAt,
     this.deletedAt = const Value.absent(),
     @required int eventId,
-  })  : value = Value(value),
-        date = Value(date),
+  })  : date = Value(date),
         createdAt = Value(createdAt),
         modifiedAt = Value(modifiedAt),
         eventId = Value(eventId);
@@ -307,7 +306,7 @@ class $LogsTable extends Logs with TableInfo<$LogsTable, Log> {
     return GeneratedRealColumn(
       'value',
       $tableName,
-      false,
+      true,
     );
   }
 
@@ -389,8 +388,6 @@ class $LogsTable extends Logs with TableInfo<$LogsTable, Log> {
     if (data.containsKey('value')) {
       context.handle(
           _valueMeta, value.isAcceptableOrUnknown(data['value'], _valueMeta));
-    } else if (isInserting) {
-      context.missing(_valueMeta);
     }
     if (data.containsKey('date')) {
       context.handle(
@@ -446,6 +443,7 @@ class Event extends DataClass implements Insertable<Event> {
   final DateTime deletedAt;
   final bool showSum;
   final bool showChange;
+  final bool isFavourite;
   final String name;
   final String description;
   final int unitId;
@@ -456,6 +454,7 @@ class Event extends DataClass implements Insertable<Event> {
       this.deletedAt,
       @required this.showSum,
       @required this.showChange,
+      @required this.isFavourite,
       @required this.name,
       this.description,
       this.unitId});
@@ -478,6 +477,8 @@ class Event extends DataClass implements Insertable<Event> {
           boolType.mapFromDatabaseResponse(data['${effectivePrefix}show_sum']),
       showChange: boolType
           .mapFromDatabaseResponse(data['${effectivePrefix}show_change']),
+      isFavourite: boolType
+          .mapFromDatabaseResponse(data['${effectivePrefix}is_favourite']),
       name: stringType.mapFromDatabaseResponse(data['${effectivePrefix}name']),
       description: stringType
           .mapFromDatabaseResponse(data['${effectivePrefix}description']),
@@ -505,6 +506,9 @@ class Event extends DataClass implements Insertable<Event> {
     }
     if (!nullToAbsent || showChange != null) {
       map['show_change'] = Variable<bool>(showChange);
+    }
+    if (!nullToAbsent || isFavourite != null) {
+      map['is_favourite'] = Variable<bool>(isFavourite);
     }
     if (!nullToAbsent || name != null) {
       map['name'] = Variable<String>(name);
@@ -536,6 +540,9 @@ class Event extends DataClass implements Insertable<Event> {
       showChange: showChange == null && nullToAbsent
           ? const Value.absent()
           : Value(showChange),
+      isFavourite: isFavourite == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isFavourite),
       name: name == null && nullToAbsent ? const Value.absent() : Value(name),
       description: description == null && nullToAbsent
           ? const Value.absent()
@@ -555,6 +562,7 @@ class Event extends DataClass implements Insertable<Event> {
       deletedAt: serializer.fromJson<DateTime>(json['deletedAt']),
       showSum: serializer.fromJson<bool>(json['showSum']),
       showChange: serializer.fromJson<bool>(json['showChange']),
+      isFavourite: serializer.fromJson<bool>(json['isFavourite']),
       name: serializer.fromJson<String>(json['name']),
       description: serializer.fromJson<String>(json['description']),
       unitId: serializer.fromJson<int>(json['unitId']),
@@ -570,6 +578,7 @@ class Event extends DataClass implements Insertable<Event> {
       'deletedAt': serializer.toJson<DateTime>(deletedAt),
       'showSum': serializer.toJson<bool>(showSum),
       'showChange': serializer.toJson<bool>(showChange),
+      'isFavourite': serializer.toJson<bool>(isFavourite),
       'name': serializer.toJson<String>(name),
       'description': serializer.toJson<String>(description),
       'unitId': serializer.toJson<int>(unitId),
@@ -583,6 +592,7 @@ class Event extends DataClass implements Insertable<Event> {
           DateTime deletedAt,
           bool showSum,
           bool showChange,
+          bool isFavourite,
           String name,
           String description,
           int unitId}) =>
@@ -593,6 +603,7 @@ class Event extends DataClass implements Insertable<Event> {
         deletedAt: deletedAt ?? this.deletedAt,
         showSum: showSum ?? this.showSum,
         showChange: showChange ?? this.showChange,
+        isFavourite: isFavourite ?? this.isFavourite,
         name: name ?? this.name,
         description: description ?? this.description,
         unitId: unitId ?? this.unitId,
@@ -606,6 +617,7 @@ class Event extends DataClass implements Insertable<Event> {
           ..write('deletedAt: $deletedAt, ')
           ..write('showSum: $showSum, ')
           ..write('showChange: $showChange, ')
+          ..write('isFavourite: $isFavourite, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
           ..write('unitId: $unitId')
@@ -627,9 +639,11 @@ class Event extends DataClass implements Insertable<Event> {
                       $mrjc(
                           showChange.hashCode,
                           $mrjc(
-                              name.hashCode,
-                              $mrjc(description.hashCode,
-                                  unitId.hashCode)))))))));
+                              isFavourite.hashCode,
+                              $mrjc(
+                                  name.hashCode,
+                                  $mrjc(description.hashCode,
+                                      unitId.hashCode))))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -640,6 +654,7 @@ class Event extends DataClass implements Insertable<Event> {
           other.deletedAt == this.deletedAt &&
           other.showSum == this.showSum &&
           other.showChange == this.showChange &&
+          other.isFavourite == this.isFavourite &&
           other.name == this.name &&
           other.description == this.description &&
           other.unitId == this.unitId);
@@ -652,6 +667,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
   final Value<DateTime> deletedAt;
   final Value<bool> showSum;
   final Value<bool> showChange;
+  final Value<bool> isFavourite;
   final Value<String> name;
   final Value<String> description;
   final Value<int> unitId;
@@ -662,6 +678,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
     this.deletedAt = const Value.absent(),
     this.showSum = const Value.absent(),
     this.showChange = const Value.absent(),
+    this.isFavourite = const Value.absent(),
     this.name = const Value.absent(),
     this.description = const Value.absent(),
     this.unitId = const Value.absent(),
@@ -673,6 +690,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
     this.deletedAt = const Value.absent(),
     @required bool showSum,
     @required bool showChange,
+    @required bool isFavourite,
     @required String name,
     this.description = const Value.absent(),
     this.unitId = const Value.absent(),
@@ -680,6 +698,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
         modifiedAt = Value(modifiedAt),
         showSum = Value(showSum),
         showChange = Value(showChange),
+        isFavourite = Value(isFavourite),
         name = Value(name);
   static Insertable<Event> custom({
     Expression<int> id,
@@ -688,6 +707,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
     Expression<DateTime> deletedAt,
     Expression<bool> showSum,
     Expression<bool> showChange,
+    Expression<bool> isFavourite,
     Expression<String> name,
     Expression<String> description,
     Expression<int> unitId,
@@ -699,6 +719,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (showSum != null) 'show_sum': showSum,
       if (showChange != null) 'show_change': showChange,
+      if (isFavourite != null) 'is_favourite': isFavourite,
       if (name != null) 'name': name,
       if (description != null) 'description': description,
       if (unitId != null) 'unit_id': unitId,
@@ -712,6 +733,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
       Value<DateTime> deletedAt,
       Value<bool> showSum,
       Value<bool> showChange,
+      Value<bool> isFavourite,
       Value<String> name,
       Value<String> description,
       Value<int> unitId}) {
@@ -722,6 +744,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
       deletedAt: deletedAt ?? this.deletedAt,
       showSum: showSum ?? this.showSum,
       showChange: showChange ?? this.showChange,
+      isFavourite: isFavourite ?? this.isFavourite,
       name: name ?? this.name,
       description: description ?? this.description,
       unitId: unitId ?? this.unitId,
@@ -749,6 +772,9 @@ class EventsCompanion extends UpdateCompanion<Event> {
     if (showChange.present) {
       map['show_change'] = Variable<bool>(showChange.value);
     }
+    if (isFavourite.present) {
+      map['is_favourite'] = Variable<bool>(isFavourite.value);
+    }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
@@ -770,6 +796,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
           ..write('deletedAt: $deletedAt, ')
           ..write('showSum: $showSum, ')
           ..write('showChange: $showChange, ')
+          ..write('isFavourite: $isFavourite, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
           ..write('unitId: $unitId')
@@ -852,6 +879,20 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
     );
   }
 
+  final VerificationMeta _isFavouriteMeta =
+      const VerificationMeta('isFavourite');
+  GeneratedBoolColumn _isFavourite;
+  @override
+  GeneratedBoolColumn get isFavourite =>
+      _isFavourite ??= _constructIsFavourite();
+  GeneratedBoolColumn _constructIsFavourite() {
+    return GeneratedBoolColumn(
+      'is_favourite',
+      $tableName,
+      false,
+    );
+  }
+
   final VerificationMeta _nameMeta = const VerificationMeta('name');
   GeneratedTextColumn _name;
   @override
@@ -892,6 +933,7 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
         deletedAt,
         showSum,
         showChange,
+        isFavourite,
         name,
         description,
         unitId
@@ -941,6 +983,14 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
               data['show_change'], _showChangeMeta));
     } else if (isInserting) {
       context.missing(_showChangeMeta);
+    }
+    if (data.containsKey('is_favourite')) {
+      context.handle(
+          _isFavouriteMeta,
+          isFavourite.isAcceptableOrUnknown(
+              data['is_favourite'], _isFavouriteMeta));
+    } else if (isInserting) {
+      context.missing(_isFavouriteMeta);
     }
     if (data.containsKey('name')) {
       context.handle(
