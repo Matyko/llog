@@ -135,13 +135,11 @@ class _EventListScreenState extends State<EventListScreen> {
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.only(right: 5.0),
-                                  child: Icon(Icons.event_note,
-                                      size: 18, color: Colors.grey.shade700),
+                                  child: Icon(Icons.event_note),
                                 ),
                                 Text(eventWithUnit.event.description,
                                     style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey.shade700)),
+                                        fontWeight: FontWeight.bold)),
                               ],
                             ),
                           ),
@@ -154,15 +152,13 @@ class _EventListScreenState extends State<EventListScreen> {
                             children: [
                               Padding(
                                 padding: const EdgeInsets.only(right: 5.0),
-                                child: Icon(Icons.date_range,
-                                    size: 18, color: Colors.grey.shade700),
+                                child: Icon(Icons.date_range),
                               ),
                               Text(
                                   dateFormat
                                       .format(eventWithUnit.event.createdAt),
                                   style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey.shade700)),
+                                      fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
@@ -175,12 +171,11 @@ class _EventListScreenState extends State<EventListScreen> {
                               Padding(
                                 padding: const EdgeInsets.only(right: 5.0),
                                 child: Icon(Icons.straighten,
-                                    size: 18, color: Colors.grey.shade700),
+                                    size: 18),
                               ),
                               Text(eventWithUnit.unit.name,
                                   style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey.shade700)),
+                                      fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),

@@ -15,7 +15,7 @@ class FavoritesScreen extends StatelessWidget {
           width: MediaQuery.of(context).size.width,
           padding: EdgeInsets.only(top: 10),
           decoration: BoxDecoration(
-              color: Colors.white,
+            color: Theme.of(context).backgroundColor,
               borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(30), topRight: Radius.circular(30))),
           child: StreamBuilder(

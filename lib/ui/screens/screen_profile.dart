@@ -14,7 +14,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: Container(
         decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).backgroundColor,
             borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(30),
                 topRight: Radius.circular(30)

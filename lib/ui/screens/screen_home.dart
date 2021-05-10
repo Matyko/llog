@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:intl/intl.dart';
 import 'package:llog/data/moor_database.dart';
 import 'package:llog/ui/screens/screen_log_form.dart';
 import 'package:llog/ui/screens/screen_profile.dart';
 import 'package:llog/ui/screens/screen_settings.dart';
 import 'package:llog/ui/widgets/llog_bottom_navigation.dart';
+import 'package:llog/ui/widgets/log_timeline_tile.dart';
 import 'package:moor_flutter/moor_flutter.dart' as moor;
 import 'package:provider/provider.dart';
 
@@ -19,7 +19,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final eventDao = Provider.of<AppDatabase>(context).eventDao;
     final logDao = Provider.of<AppDatabase>(context).logDao;
-    final dateFormat = new DateFormat('yyyy-MM-dd hh:mm');
     return Scaffold(
       appBar: AppBar(
           leading: IconButton(
@@ -43,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Container(
         width: MediaQuery.of(context).size.width,
         decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).backgroundColor,
             borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(30), topRight: Radius.circular(30))),
         child: ListView(
@@ -105,32 +104,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       duration: Duration(milliseconds: 200),
                       child: (logs.length > 0)
                           ? Container(
-                              height: 320,
+                              height: 400,
                               child: ListView.builder(
                                   physics: NeverScrollableScrollPhysics(),
                                   itemCount: logs.length,
                                   itemBuilder: (_, index) {
-                                    return ListTile(
-                                        title: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8.0),
-                                          child: Text(logs[index].event.name),
-                                        ),
-                                        subtitle: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8.0),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(dateFormat.format(
-                                                  logs[index].log.date)),
-                                              if (logs[index].unit != null)
-                                                Text(
-                                                    '${logs[index].log.value.toString()} ${logs[index].unit.name}'),
-                                            ],
-                                          ),
-                                        ));
+                                    final itemLog = logs[index];
+                                    return LogTimelineTile(itemLog, logDao, index, logs);
                                   }),
                             )
                           : Padding(
