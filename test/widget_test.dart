@@ -6,14 +6,17 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:llog/main.dart';
+import 'package:llog/util/app_settings.dart';
+import 'package:streaming_shared_preferences/streaming_shared_preferences.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(LLog());
+    await tester.pumpWidget(LLog(AppSettings(await StreamingSharedPreferences.instance)));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);
