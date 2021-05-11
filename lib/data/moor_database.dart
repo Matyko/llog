@@ -40,6 +40,22 @@ class EventWithUnit {
   EventWithUnit({@required this.event, @required this.unit});
 }
 
+class EventWithUnitAndReminder {
+  final Event event;
+  final Unit unit;
+  final Reminder reminder;
+
+  EventWithUnitAndReminder(
+      {@required this.event, @required this.unit, @required this.reminder});
+}
+
+class ReminderWithEvent {
+  final Reminder reminder;
+  final Event event;
+
+  ReminderWithEvent({@required this.reminder, @required this.event});
+}
+
 @UseDao(tables: [Logs, Events, Units])
 class LogDao extends DatabaseAccessor<AppDatabase> with _$LogDaoMixin {
   final AppDatabase db;
@@ -69,27 +85,27 @@ class LogDao extends DatabaseAccessor<AppDatabase> with _$LogDaoMixin {
             }).toList());
   }
 
-  Stream<List<LogWithEventAndUnit>> watchAllLogsWithLimit(OrderingMode mode, int limit,
+  Stream<List<LogWithEventAndUnit>> watchAllLogsWithLimit(
+      OrderingMode mode, int limit,
       {int eventId}) {
     return (select(logs)
-      ..where(eventId != null
-          ? (table) =>
-      isNull(table.deletedAt) & table.eventId.equals(eventId)
-          : (table) => isNull(table.deletedAt))
-      ..orderBy([(t) => OrderingTerm(expression: t.date, mode: mode)])
-      ..limit(limit)
-    )
+          ..where(eventId != null
+              ? (table) =>
+                  isNull(table.deletedAt) & table.eventId.equals(eventId)
+              : (table) => isNull(table.deletedAt))
+          ..orderBy([(t) => OrderingTerm(expression: t.date, mode: mode)])
+          ..limit(limit))
         .join([
-      leftOuterJoin(events, events.id.equalsExp(logs.eventId)),
-      leftOuterJoin(units, units.id.equalsExp(events.unitId))
-    ])
+          leftOuterJoin(events, events.id.equalsExp(logs.eventId)),
+          leftOuterJoin(units, units.id.equalsExp(events.unitId))
+        ])
         .watch()
         .map((rows) => rows.map((row) {
-      return LogWithEventAndUnit(
-          log: row.readTable(logs),
-          event: row.readTable(events),
-          unit: row.readTable(units));
-    }).toList());
+              return LogWithEventAndUnit(
+                  log: row.readTable(logs),
+                  event: row.readTable(events),
+                  unit: row.readTable(units));
+            }).toList());
   }
 
   Stream<double> getValueSumForEvent(int eventId) {
@@ -107,13 +123,13 @@ class LogDao extends DatabaseAccessor<AppDatabase> with _$LogDaoMixin {
   Future deleteLog(Insertable<Log> log) => delete(logs).delete(log);
 }
 
-@UseDao(tables: [Events, Units])
+@UseDao(tables: [Events, Units, Reminders])
 class EventDao extends DatabaseAccessor<AppDatabase> with _$EventDaoMixin {
   final AppDatabase db;
 
   EventDao(this.db) : super(db);
 
-  Stream<List<EventWithUnit>> watchEvents(OrderingMode mode,
+  Stream<List<EventWithUnitAndReminder>> watchEvents(OrderingMode mode,
       {bool isFavourite}) {
     return (select(events)
           ..where(isFavourite != null
@@ -122,11 +138,16 @@ class EventDao extends DatabaseAccessor<AppDatabase> with _$EventDaoMixin {
                   table.isFavourite.equals(isFavourite)
               : (table) => isNull(table.deletedAt))
           ..orderBy([(t) => OrderingTerm(expression: t.name, mode: mode)]))
-        .join([leftOuterJoin(units, units.id.equalsExp(events.unitId))])
+        .join([
+          leftOuterJoin(units, units.id.equalsExp(events.unitId)),
+          leftOuterJoin(reminders, reminders.eventId.equalsExp(events.id))
+        ])
         .watch()
         .map((rows) => rows.map((row) {
-              return EventWithUnit(
-                  event: row.readTable(events), unit: row.readTable(units));
+              return EventWithUnitAndReminder(
+                  event: row.readTable(events),
+                  unit: row.readTable(units),
+                  reminder: row.readTable(reminders));
             }).toList());
   }
 
@@ -153,15 +174,28 @@ class UnitDao extends DatabaseAccessor<AppDatabase> with _$UnitDaoMixin {
   Future deleteUnit(Insertable<Unit> unit) => delete(units).delete(unit);
 }
 
-@UseDao(tables: [Reminders])
+@UseDao(tables: [Reminders, Events])
 class ReminderDao extends DatabaseAccessor<AppDatabase>
     with _$ReminderDaoMixin {
   final AppDatabase db;
 
   ReminderDao(this.db) : super(db);
 
-  Stream<List<Reminder>> watchReminders() =>
-      (select(reminders)..where((table) => isNull(table.deletedAt))).watch();
+  Stream<List<ReminderWithEvent>> watchReminders(OrderingMode mode,
+      {bool isFavourite}) {
+    return (select(reminders)..where((table) => isNull(table.deletedAt)))
+        .join([leftOuterJoin(events, events.id.equalsExp(reminders.eventId))])
+        .watch()
+        .map((rows) => rows.map((row) {
+              return ReminderWithEvent(
+                  event: row.readTable(events),
+                  reminder: row.readTable(reminders));
+            }).toList());
+  }
+
+  Stream<Reminder> watchReminder(int eventId) =>
+      (select(reminders)..where((table) => table.eventId.equals(eventId)))
+          .watchSingle();
 
   Future insertReminder(Insertable<Reminder> reminder) =>
       into(reminders).insert(reminder);

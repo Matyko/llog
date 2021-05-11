@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:llog/data/moor_database.dart';
 import 'package:llog/ui/screens/screen_analytics.dart';
 import 'package:llog/ui/screens/screen_event_form.dart';
+import 'package:llog/ui/screens/screen_reminder_form.dart';
 import 'package:llog/ui/widgets/llog_bottom_navigation.dart';
 import 'package:llog/ui/widgets/llog_dismissible.dart';
 import 'package:moor_flutter/moor_flutter.dart' as moor;
@@ -40,7 +41,7 @@ class _EventListScreenState extends State<EventListScreen> {
     final eventDao = Provider.of<AppDatabase>(context).eventDao;
     return StreamBuilder(
         stream: eventDao.watchEvents(moor.OrderingMode.desc),
-        builder: (context, AsyncSnapshot<List<EventWithUnit>> snapshot) {
+        builder: (context, AsyncSnapshot<List<EventWithUnitAndReminder>> snapshot) {
           final events = snapshot.data ?? [];
           return AnimatedOpacity(
               opacity:
@@ -90,26 +91,26 @@ class _EventListScreenState extends State<EventListScreen> {
         });
   }
 
-  _buildEventItem(EventWithUnit eventWithUnit, EventDao eventDao) {
+  _buildEventItem(EventWithUnitAndReminder eventWithUnitAndReminder, EventDao eventDao) {
     final DateFormat dateFormat = new DateFormat('yyyy/MM/dd');
     return LlogDismissible(
         confirmDismiss: (DismissDirection direction) =>
-            _handleDismiss(direction, eventWithUnit),
+            _handleDismiss(direction, eventWithUnitAndReminder),
         onDismissed: (DismissDirection direction) {
           Event eventWithDeletedAt = new Event(
-              id: eventWithUnit.event.id,
-              createdAt: eventWithUnit.event.createdAt,
-              modifiedAt: eventWithUnit.event.modifiedAt,
+              id: eventWithUnitAndReminder.event.id,
+              createdAt: eventWithUnitAndReminder.event.createdAt,
+              modifiedAt: eventWithUnitAndReminder.event.modifiedAt,
               deletedAt: DateTime.now(),
-              name: eventWithUnit.event.name,
-              showChange: eventWithUnit.event.showChange,
-              showSum: eventWithUnit.event.showSum,
-              isFavourite: eventWithUnit.event.isFavourite,
-              description: eventWithUnit.event.description,
-              unitId: eventWithUnit.event.unitId);
+              name: eventWithUnitAndReminder.event.name,
+              showChange: eventWithUnitAndReminder.event.showChange,
+              showSum: eventWithUnitAndReminder.event.showSum,
+              isFavourite: eventWithUnitAndReminder.event.isFavourite,
+              description: eventWithUnitAndReminder.event.description,
+              unitId: eventWithUnitAndReminder.event.unitId);
           eventDao.updateEvent(eventWithDeletedAt);
         },
-        key: Key(eventWithUnit.event.name),
+        key: Key(eventWithUnitAndReminder.event.name),
         child: ListTile(
           title: Card(
             child: Padding(
@@ -121,12 +122,12 @@ class _EventListScreenState extends State<EventListScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(eventWithUnit.event.name,
+                      Text(eventWithUnitAndReminder.event.name,
                           style: TextStyle(
                               fontWeight: FontWeight.w500,
                               fontSize: 20,
                               color: Theme.of(context).primaryColor)),
-                      if (eventWithUnit.event.description != null)
+                      if (eventWithUnitAndReminder.event.description != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
                           child: Tooltip(
@@ -137,7 +138,7 @@ class _EventListScreenState extends State<EventListScreen> {
                                   padding: const EdgeInsets.only(right: 5.0),
                                   child: Icon(Icons.event_note),
                                 ),
-                                Text(eventWithUnit.event.description,
+                                Text(eventWithUnitAndReminder.event.description,
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold)),
                               ],
@@ -156,14 +157,14 @@ class _EventListScreenState extends State<EventListScreen> {
                               ),
                               Text(
                                   dateFormat
-                                      .format(eventWithUnit.event.createdAt),
+                                      .format(eventWithUnitAndReminder.event.createdAt),
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
                       ),
-                      if (eventWithUnit.unit != null)
+                      if (eventWithUnitAndReminder.unit != null)
                         Tooltip(
                           message: 'Unit',
                           child: Row(
@@ -173,7 +174,7 @@ class _EventListScreenState extends State<EventListScreen> {
                                 child: Icon(Icons.straighten,
                                     size: 18),
                               ),
-                              Text(eventWithUnit.unit.name,
+                              Text(eventWithUnitAndReminder.unit.name,
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold)),
                             ],
@@ -185,22 +186,22 @@ class _EventListScreenState extends State<EventListScreen> {
                     children: [
                       IconButton(
                           icon: Icon(
-                            eventWithUnit.event.isFavourite
+                            eventWithUnitAndReminder.event.isFavourite
                                 ? Icons.favorite
                                 : Icons.favorite_outline,
                             color: Theme.of(context).primaryColor,
                           ),
                           onPressed: () {
                             Event eventWithFavouriteFlipped = new Event(
-                                id: eventWithUnit.event.id,
-                                createdAt: eventWithUnit.event.createdAt,
-                                modifiedAt: eventWithUnit.event.modifiedAt,
-                                isFavourite: !eventWithUnit.event.isFavourite,
-                                showChange: eventWithUnit.event.showChange,
-                                showSum: eventWithUnit.event.showSum,
-                                name: eventWithUnit.event.name,
-                                description: eventWithUnit.event.description,
-                                unitId: eventWithUnit.event.unitId);
+                                id: eventWithUnitAndReminder.event.id,
+                                createdAt: eventWithUnitAndReminder.event.createdAt,
+                                modifiedAt: eventWithUnitAndReminder.event.modifiedAt,
+                                isFavourite: !eventWithUnitAndReminder.event.isFavourite,
+                                showChange: eventWithUnitAndReminder.event.showChange,
+                                showSum: eventWithUnitAndReminder.event.showSum,
+                                name: eventWithUnitAndReminder.event.name,
+                                description: eventWithUnitAndReminder.event.description,
+                                unitId: eventWithUnitAndReminder.event.unitId);
                             eventDao.updateEvent(eventWithFavouriteFlipped);
                           }),
                       IconButton(
@@ -211,7 +212,17 @@ class _EventListScreenState extends State<EventListScreen> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (_) =>
-                                        AnalyticsScreen(eventWithUnit)));
+                                        AnalyticsScreen(eventWithUnitAndReminder)));
+                          }),
+                      IconButton(
+                          icon: Icon(eventWithUnitAndReminder.reminder == null ? Icons.alarm_off : Icons.alarm,
+                              size: 30, color: Theme.of(context).accentColor),
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        ReminderFormScreen(eventWithUnitAndReminder.event, reminder: eventWithUnitAndReminder.reminder,)));
                           })
                     ],
                   ),
@@ -223,12 +234,12 @@ class _EventListScreenState extends State<EventListScreen> {
   }
 
   Future<bool> _handleDismiss(
-      DismissDirection direction, EventWithUnit eventWithUnit) async {
+      DismissDirection direction, EventWithUnitAndReminder eventWithUnitAndReminder) async {
     if (direction == DismissDirection.startToEnd) {
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (_) => EventFormScreen(eventWithUnit: eventWithUnit)));
+              builder: (_) => EventFormScreen(eventWithUnitAndReminder: eventWithUnitAndReminder)));
       return false;
     }
     return true;

@@ -20,7 +20,7 @@ class FavoritesScreen extends StatelessWidget {
                   topLeft: Radius.circular(30), topRight: Radius.circular(30))),
           child: StreamBuilder(
               stream: eventDao.watchEvents(OrderingMode.desc),
-              builder: (context, AsyncSnapshot<List<EventWithUnit>> snapshot) {
+              builder: (context, AsyncSnapshot<List<EventWithUnitAndReminder>> snapshot) {
                 final events = snapshot.data ?? [];
                 return ListView.builder(
                     itemCount: events.length,

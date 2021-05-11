@@ -65,8 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
             StreamBuilder(
                 stream: eventDao.watchEvents(moor.OrderingMode.desc,
                     isFavourite: true),
-                builder:
-                    (context, AsyncSnapshot<List<EventWithUnit>> snapshot) {
+                builder: (context,
+                    AsyncSnapshot<List<EventWithUnitAndReminder>> snapshot) {
                   final events = snapshot.data ?? [];
                   return AnimatedOpacity(
                       opacity:
@@ -110,7 +110,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   itemCount: logs.length,
                                   itemBuilder: (_, index) {
                                     final itemLog = logs[index];
-                                    return LogTimelineTile(itemLog, logDao, index, logs);
+                                    return LogTimelineTile(
+                                        itemLog, logDao, index, logs);
                                   }),
                             )
                           : Padding(
@@ -132,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  _getFavourites(List<EventWithUnit> events, BuildContext context) {
+  _getFavourites(List<EventWithUnitAndReminder> events, BuildContext context) {
     return events.map((eventWithUnit) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
@@ -156,8 +157,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) =>
-                                LogFormScreen(eventWithUnit: eventWithUnit)));
+                            builder: (_) => LogFormScreen(
+                                eventWithUnit: new EventWithUnit(
+                                    event: eventWithUnit.event,
+                                    unit: eventWithUnit.unit))));
                   },
                 )
               ],

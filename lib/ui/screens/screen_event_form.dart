@@ -5,9 +5,9 @@ import 'package:llog/ui/widgets/form_element.dart';
 import 'package:provider/provider.dart';
 
 class EventFormScreen extends StatefulWidget {
-  final EventWithUnit eventWithUnit;
+  final EventWithUnitAndReminder eventWithUnitAndReminder;
 
-  EventFormScreen({this.eventWithUnit});
+  EventFormScreen({this.eventWithUnitAndReminder});
 
   @override
   _EventFormScreenState createState() => _EventFormScreenState();
@@ -26,16 +26,16 @@ class _EventFormScreenState extends State<EventFormScreen> {
   @override
   void initState() {
     _nameController.text =
-        widget.eventWithUnit == null ? "" : widget.eventWithUnit.event.name;
-    _descriptionController.text = widget.eventWithUnit == null
+        widget.eventWithUnitAndReminder == null ? "" : widget.eventWithUnitAndReminder.event.name;
+    _descriptionController.text = widget.eventWithUnitAndReminder == null
         ? ""
-        : widget.eventWithUnit.event.description;
+        : widget.eventWithUnitAndReminder.event.description;
 
-    if (widget.eventWithUnit != null) {
-      _showChange = widget.eventWithUnit.event.showChange;
-      _showSum = widget.eventWithUnit.event.showSum;
-      if (widget.eventWithUnit.event.unitId != null) {
-      _unitId = widget.eventWithUnit.event.unitId;
+    if (widget.eventWithUnitAndReminder != null) {
+      _showChange = widget.eventWithUnitAndReminder.event.showChange;
+      _showSum = widget.eventWithUnitAndReminder.event.showSum;
+      if (widget.eventWithUnitAndReminder.event.unitId != null) {
+      _unitId = widget.eventWithUnitAndReminder.event.unitId;
       _measurable = true;
     }
   }
@@ -50,7 +50,7 @@ class _EventFormScreenState extends State<EventFormScreen> {
     return Scaffold(
       appBar: AppBar(
         title:
-            Text((widget.eventWithUnit == null ? 'Create' : 'Edit') + ' Event',
+            Text((widget.eventWithUnitAndReminder == null ? 'Create' : 'Edit') + ' Event',
                 style: TextStyle(
                   color: Theme.of(context).primaryColor,
                 )),
@@ -62,20 +62,20 @@ class _EventFormScreenState extends State<EventFormScreen> {
               onPressed: () {
                 if (_formKey.currentState.validate()) {
                   final event = new Event(
-                      id: widget.eventWithUnit == null
+                      id: widget.eventWithUnitAndReminder == null
                           ? null
-                          : widget.eventWithUnit.event.id,
+                          : widget.eventWithUnitAndReminder.event.id,
                       name: _nameController.text,
                       description: _descriptionController.text,
                       unitId: _unitId,
                       showChange: _showChange,
                       showSum: _showSum,
-                      isFavourite: widget.eventWithUnit == null ? false : widget.eventWithUnit.event.isFavourite,
-                      createdAt: widget.eventWithUnit == null
+                      isFavourite: widget.eventWithUnitAndReminder == null ? false : widget.eventWithUnitAndReminder.event.isFavourite,
+                      createdAt: widget.eventWithUnitAndReminder == null
                           ? DateTime.now()
-                          : widget.eventWithUnit.event.createdAt,
+                          : widget.eventWithUnitAndReminder.event.createdAt,
                       modifiedAt: DateTime.now());
-                  if (widget.eventWithUnit == null) {
+                  if (widget.eventWithUnitAndReminder == null) {
                     eventDao.insertEvent(event);
                   } else {
                     print(event);

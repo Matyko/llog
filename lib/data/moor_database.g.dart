@@ -1410,24 +1410,43 @@ class $UnitsTable extends Units with TableInfo<$UnitsTable, Unit> {
 class Reminder extends DataClass implements Insertable<Reminder> {
   final int id;
   final int notificationId;
+  final int hour;
+  final int minute;
+  final DateTime createdAt;
+  final DateTime modifiedAt;
   final DateTime deletedAt;
+  final List<dynamic> days;
   final int eventId;
   Reminder(
       {@required this.id,
       @required this.notificationId,
+      @required this.hour,
+      @required this.minute,
+      @required this.createdAt,
+      @required this.modifiedAt,
       this.deletedAt,
+      this.days,
       @required this.eventId});
   factory Reminder.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String prefix}) {
     final effectivePrefix = prefix ?? '';
     final intType = db.typeSystem.forDartType<int>();
     final dateTimeType = db.typeSystem.forDartType<DateTime>();
+    final stringType = db.typeSystem.forDartType<String>();
     return Reminder(
       id: intType.mapFromDatabaseResponse(data['${effectivePrefix}id']),
       notificationId: intType
           .mapFromDatabaseResponse(data['${effectivePrefix}notification_id']),
+      hour: intType.mapFromDatabaseResponse(data['${effectivePrefix}hour']),
+      minute: intType.mapFromDatabaseResponse(data['${effectivePrefix}minute']),
+      createdAt: dateTimeType
+          .mapFromDatabaseResponse(data['${effectivePrefix}created_at']),
+      modifiedAt: dateTimeType
+          .mapFromDatabaseResponse(data['${effectivePrefix}modified_at']),
       deletedAt: dateTimeType
           .mapFromDatabaseResponse(data['${effectivePrefix}deleted_at']),
+      days: $RemindersTable.$converter0.mapToDart(
+          stringType.mapFromDatabaseResponse(data['${effectivePrefix}days'])),
       eventId:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}event_id']),
     );
@@ -1441,8 +1460,24 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     if (!nullToAbsent || notificationId != null) {
       map['notification_id'] = Variable<int>(notificationId);
     }
+    if (!nullToAbsent || hour != null) {
+      map['hour'] = Variable<int>(hour);
+    }
+    if (!nullToAbsent || minute != null) {
+      map['minute'] = Variable<int>(minute);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || modifiedAt != null) {
+      map['modified_at'] = Variable<DateTime>(modifiedAt);
+    }
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    if (!nullToAbsent || days != null) {
+      final converter = $RemindersTable.$converter0;
+      map['days'] = Variable<String>(converter.mapToSql(days));
     }
     if (!nullToAbsent || eventId != null) {
       map['event_id'] = Variable<int>(eventId);
@@ -1456,9 +1491,19 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       notificationId: notificationId == null && nullToAbsent
           ? const Value.absent()
           : Value(notificationId),
+      hour: hour == null && nullToAbsent ? const Value.absent() : Value(hour),
+      minute:
+          minute == null && nullToAbsent ? const Value.absent() : Value(minute),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      modifiedAt: modifiedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(modifiedAt),
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      days: days == null && nullToAbsent ? const Value.absent() : Value(days),
       eventId: eventId == null && nullToAbsent
           ? const Value.absent()
           : Value(eventId),
@@ -1471,7 +1516,12 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     return Reminder(
       id: serializer.fromJson<int>(json['id']),
       notificationId: serializer.fromJson<int>(json['notificationId']),
+      hour: serializer.fromJson<int>(json['hour']),
+      minute: serializer.fromJson<int>(json['minute']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      modifiedAt: serializer.fromJson<DateTime>(json['modifiedAt']),
       deletedAt: serializer.fromJson<DateTime>(json['deletedAt']),
+      days: serializer.fromJson<List<dynamic>>(json['days']),
       eventId: serializer.fromJson<int>(json['eventId']),
     );
   }
@@ -1481,17 +1531,35 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'notificationId': serializer.toJson<int>(notificationId),
+      'hour': serializer.toJson<int>(hour),
+      'minute': serializer.toJson<int>(minute),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'modifiedAt': serializer.toJson<DateTime>(modifiedAt),
       'deletedAt': serializer.toJson<DateTime>(deletedAt),
+      'days': serializer.toJson<List<dynamic>>(days),
       'eventId': serializer.toJson<int>(eventId),
     };
   }
 
   Reminder copyWith(
-          {int id, int notificationId, DateTime deletedAt, int eventId}) =>
+          {int id,
+          int notificationId,
+          int hour,
+          int minute,
+          DateTime createdAt,
+          DateTime modifiedAt,
+          DateTime deletedAt,
+          List<dynamic> days,
+          int eventId}) =>
       Reminder(
         id: id ?? this.id,
         notificationId: notificationId ?? this.notificationId,
+        hour: hour ?? this.hour,
+        minute: minute ?? this.minute,
+        createdAt: createdAt ?? this.createdAt,
+        modifiedAt: modifiedAt ?? this.modifiedAt,
         deletedAt: deletedAt ?? this.deletedAt,
+        days: days ?? this.days,
         eventId: eventId ?? this.eventId,
       );
   @override
@@ -1499,7 +1567,12 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     return (StringBuffer('Reminder(')
           ..write('id: $id, ')
           ..write('notificationId: $notificationId, ')
+          ..write('hour: $hour, ')
+          ..write('minute: $minute, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('modifiedAt: $modifiedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('days: $days, ')
           ..write('eventId: $eventId')
           ..write(')'))
         .toString();
@@ -1508,46 +1581,90 @@ class Reminder extends DataClass implements Insertable<Reminder> {
   @override
   int get hashCode => $mrjf($mrjc(
       id.hashCode,
-      $mrjc(notificationId.hashCode,
-          $mrjc(deletedAt.hashCode, eventId.hashCode))));
+      $mrjc(
+          notificationId.hashCode,
+          $mrjc(
+              hour.hashCode,
+              $mrjc(
+                  minute.hashCode,
+                  $mrjc(
+                      createdAt.hashCode,
+                      $mrjc(
+                          modifiedAt.hashCode,
+                          $mrjc(deletedAt.hashCode,
+                              $mrjc(days.hashCode, eventId.hashCode)))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is Reminder &&
           other.id == this.id &&
           other.notificationId == this.notificationId &&
+          other.hour == this.hour &&
+          other.minute == this.minute &&
+          other.createdAt == this.createdAt &&
+          other.modifiedAt == this.modifiedAt &&
           other.deletedAt == this.deletedAt &&
+          other.days == this.days &&
           other.eventId == this.eventId);
 }
 
 class RemindersCompanion extends UpdateCompanion<Reminder> {
   final Value<int> id;
   final Value<int> notificationId;
+  final Value<int> hour;
+  final Value<int> minute;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> modifiedAt;
   final Value<DateTime> deletedAt;
+  final Value<List<dynamic>> days;
   final Value<int> eventId;
   const RemindersCompanion({
     this.id = const Value.absent(),
     this.notificationId = const Value.absent(),
+    this.hour = const Value.absent(),
+    this.minute = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.modifiedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.days = const Value.absent(),
     this.eventId = const Value.absent(),
   });
   RemindersCompanion.insert({
     this.id = const Value.absent(),
     @required int notificationId,
+    @required int hour,
+    @required int minute,
+    @required DateTime createdAt,
+    @required DateTime modifiedAt,
     this.deletedAt = const Value.absent(),
+    this.days = const Value.absent(),
     @required int eventId,
   })  : notificationId = Value(notificationId),
+        hour = Value(hour),
+        minute = Value(minute),
+        createdAt = Value(createdAt),
+        modifiedAt = Value(modifiedAt),
         eventId = Value(eventId);
   static Insertable<Reminder> custom({
     Expression<int> id,
     Expression<int> notificationId,
+    Expression<int> hour,
+    Expression<int> minute,
+    Expression<DateTime> createdAt,
+    Expression<DateTime> modifiedAt,
     Expression<DateTime> deletedAt,
+    Expression<String> days,
     Expression<int> eventId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (notificationId != null) 'notification_id': notificationId,
+      if (hour != null) 'hour': hour,
+      if (minute != null) 'minute': minute,
+      if (createdAt != null) 'created_at': createdAt,
+      if (modifiedAt != null) 'modified_at': modifiedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (days != null) 'days': days,
       if (eventId != null) 'event_id': eventId,
     });
   }
@@ -1555,12 +1672,22 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
   RemindersCompanion copyWith(
       {Value<int> id,
       Value<int> notificationId,
+      Value<int> hour,
+      Value<int> minute,
+      Value<DateTime> createdAt,
+      Value<DateTime> modifiedAt,
       Value<DateTime> deletedAt,
+      Value<List<dynamic>> days,
       Value<int> eventId}) {
     return RemindersCompanion(
       id: id ?? this.id,
       notificationId: notificationId ?? this.notificationId,
+      hour: hour ?? this.hour,
+      minute: minute ?? this.minute,
+      createdAt: createdAt ?? this.createdAt,
+      modifiedAt: modifiedAt ?? this.modifiedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      days: days ?? this.days,
       eventId: eventId ?? this.eventId,
     );
   }
@@ -1574,8 +1701,24 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     if (notificationId.present) {
       map['notification_id'] = Variable<int>(notificationId.value);
     }
+    if (hour.present) {
+      map['hour'] = Variable<int>(hour.value);
+    }
+    if (minute.present) {
+      map['minute'] = Variable<int>(minute.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (modifiedAt.present) {
+      map['modified_at'] = Variable<DateTime>(modifiedAt.value);
+    }
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (days.present) {
+      final converter = $RemindersTable.$converter0;
+      map['days'] = Variable<String>(converter.mapToSql(days.value));
     }
     if (eventId.present) {
       map['event_id'] = Variable<int>(eventId.value);
@@ -1588,7 +1731,12 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     return (StringBuffer('RemindersCompanion(')
           ..write('id: $id, ')
           ..write('notificationId: $notificationId, ')
+          ..write('hour: $hour, ')
+          ..write('minute: $minute, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('modifiedAt: $modifiedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('days: $days, ')
           ..write('eventId: $eventId')
           ..write(')'))
         .toString();
@@ -1623,6 +1771,55 @@ class $RemindersTable extends Reminders
     );
   }
 
+  final VerificationMeta _hourMeta = const VerificationMeta('hour');
+  GeneratedIntColumn _hour;
+  @override
+  GeneratedIntColumn get hour => _hour ??= _constructHour();
+  GeneratedIntColumn _constructHour() {
+    return GeneratedIntColumn(
+      'hour',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _minuteMeta = const VerificationMeta('minute');
+  GeneratedIntColumn _minute;
+  @override
+  GeneratedIntColumn get minute => _minute ??= _constructMinute();
+  GeneratedIntColumn _constructMinute() {
+    return GeneratedIntColumn(
+      'minute',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
+  GeneratedDateTimeColumn _createdAt;
+  @override
+  GeneratedDateTimeColumn get createdAt => _createdAt ??= _constructCreatedAt();
+  GeneratedDateTimeColumn _constructCreatedAt() {
+    return GeneratedDateTimeColumn(
+      'created_at',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _modifiedAtMeta = const VerificationMeta('modifiedAt');
+  GeneratedDateTimeColumn _modifiedAt;
+  @override
+  GeneratedDateTimeColumn get modifiedAt =>
+      _modifiedAt ??= _constructModifiedAt();
+  GeneratedDateTimeColumn _constructModifiedAt() {
+    return GeneratedDateTimeColumn(
+      'modified_at',
+      $tableName,
+      false,
+    );
+  }
+
   final VerificationMeta _deletedAtMeta = const VerificationMeta('deletedAt');
   GeneratedDateTimeColumn _deletedAt;
   @override
@@ -1630,6 +1827,18 @@ class $RemindersTable extends Reminders
   GeneratedDateTimeColumn _constructDeletedAt() {
     return GeneratedDateTimeColumn(
       'deleted_at',
+      $tableName,
+      true,
+    );
+  }
+
+  final VerificationMeta _daysMeta = const VerificationMeta('days');
+  GeneratedTextColumn _days;
+  @override
+  GeneratedTextColumn get days => _days ??= _constructDays();
+  GeneratedTextColumn _constructDays() {
+    return GeneratedTextColumn(
+      'days',
       $tableName,
       true,
     );
@@ -1645,8 +1854,17 @@ class $RemindersTable extends Reminders
   }
 
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, notificationId, deletedAt, eventId];
+  List<GeneratedColumn> get $columns => [
+        id,
+        notificationId,
+        hour,
+        minute,
+        createdAt,
+        modifiedAt,
+        deletedAt,
+        days,
+        eventId
+      ];
   @override
   $RemindersTable get asDslTable => this;
   @override
@@ -1669,10 +1887,37 @@ class $RemindersTable extends Reminders
     } else if (isInserting) {
       context.missing(_notificationIdMeta);
     }
+    if (data.containsKey('hour')) {
+      context.handle(
+          _hourMeta, hour.isAcceptableOrUnknown(data['hour'], _hourMeta));
+    } else if (isInserting) {
+      context.missing(_hourMeta);
+    }
+    if (data.containsKey('minute')) {
+      context.handle(_minuteMeta,
+          minute.isAcceptableOrUnknown(data['minute'], _minuteMeta));
+    } else if (isInserting) {
+      context.missing(_minuteMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at'], _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('modified_at')) {
+      context.handle(
+          _modifiedAtMeta,
+          modifiedAt.isAcceptableOrUnknown(
+              data['modified_at'], _modifiedAtMeta));
+    } else if (isInserting) {
+      context.missing(_modifiedAtMeta);
+    }
     if (data.containsKey('deleted_at')) {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableOrUnknown(data['deleted_at'], _deletedAtMeta));
     }
+    context.handle(_daysMeta, const VerificationResult.success());
     if (data.containsKey('event_id')) {
       context.handle(_eventIdMeta,
           eventId.isAcceptableOrUnknown(data['event_id'], _eventIdMeta));
@@ -1694,6 +1939,9 @@ class $RemindersTable extends Reminders
   $RemindersTable createAlias(String alias) {
     return $RemindersTable(_db, alias);
   }
+
+  static TypeConverter<List<dynamic>, String> $converter0 =
+      StringListConverter();
 }
 
 abstract class _$AppDatabase extends GeneratedDatabase {
@@ -1734,10 +1982,12 @@ mixin _$LogDaoMixin on DatabaseAccessor<AppDatabase> {
 mixin _$EventDaoMixin on DatabaseAccessor<AppDatabase> {
   $EventsTable get events => attachedDatabase.events;
   $UnitsTable get units => attachedDatabase.units;
+  $RemindersTable get reminders => attachedDatabase.reminders;
 }
 mixin _$UnitDaoMixin on DatabaseAccessor<AppDatabase> {
   $UnitsTable get units => attachedDatabase.units;
 }
 mixin _$ReminderDaoMixin on DatabaseAccessor<AppDatabase> {
   $RemindersTable get reminders => attachedDatabase.reminders;
+  $EventsTable get events => attachedDatabase.events;
 }

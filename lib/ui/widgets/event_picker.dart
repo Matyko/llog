@@ -36,7 +36,8 @@ class _EventPickerState extends State<EventPicker> {
     final eventDao = Provider.of<AppDatabase>(context).eventDao;
     return StreamBuilder(
         stream: eventDao.watchEvents(moor.OrderingMode.asc),
-        builder: (context, AsyncSnapshot<List<EventWithUnit>> snapshot) {
+        builder:
+            (context, AsyncSnapshot<List<EventWithUnitAndReminder>> snapshot) {
           final eventsWithUnits = snapshot.data ?? [];
           final items = eventsWithUnits.map<DropdownMenuItem>((eventWithUnit) {
             return DropdownMenuItem(
@@ -71,8 +72,10 @@ class _EventPickerState extends State<EventPicker> {
                           return;
                         }
                         setState(() {
-                          _eventWithUnit = eventsWithUnits
+                          EventWithUnitAndReminder event = eventsWithUnits
                               .firstWhere((element) => element.event.id == id);
+                          _eventWithUnit = new EventWithUnit(
+                              event: event.event, unit: event.unit);
                         });
                         if (widget.onChange != null) {
                           widget.onChange(_eventWithUnit);

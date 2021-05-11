@@ -6,9 +6,9 @@ import 'package:moor_flutter/moor_flutter.dart' as moor;
 import 'package:provider/provider.dart';
 
 class AnalyticsScreen extends StatefulWidget {
-  final EventWithUnit eventWithUnit;
+  final EventWithUnitAndReminder eventWithUnitAndReminder;
 
-  const AnalyticsScreen(this.eventWithUnit);
+  const AnalyticsScreen(this.eventWithUnitAndReminder);
 
   @override
   _AnalyticsScreenState createState() => _AnalyticsScreenState();
@@ -28,17 +28,17 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return Scaffold(
       appBar: AppBar(
           title: Text(
-        '${widget.eventWithUnit.event.name} Analytics',
+        '${widget.eventWithUnitAndReminder.event.name} Analytics',
         style: TextStyle(color: Theme.of(context).primaryColor),
       )),
       body: StreamBuilder<List<LogWithEventAndUnit>>(
           stream: logDao.watchAllLogs(moor.OrderingMode.desc,
-              eventId: widget.eventWithUnit.event.id),
+              eventId: widget.eventWithUnitAndReminder.event.id),
           builder: (context, snapshot) {
-            final hasValue = widget.eventWithUnit.unit != null;
-            final showSum = hasValue && widget.eventWithUnit.event.showSum;
+            final hasValue = widget.eventWithUnitAndReminder.unit != null;
+            final showSum = hasValue && widget.eventWithUnitAndReminder.event.showSum;
             final showChange =
-                hasValue && widget.eventWithUnit.event.showChange;
+                hasValue && widget.eventWithUnitAndReminder.event.showChange;
             final logsWithEventAndUnit = snapshot.data ?? [];
             final changesInSum = <ChartValue>[];
             final changesInValue = <ChartValue>[];
@@ -91,7 +91,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         if (showSum)
                           StreamBuilder<double>(
                               stream: logDao.getValueSumForEvent(
-                                  widget.eventWithUnit.event.id),
+                                  widget.eventWithUnitAndReminder.event.id),
                               builder: (context, snapshot) {
                                 double sum = snapshot.data ?? 0;
                                 return AnalyticsCard(
@@ -100,7 +100,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                                       color: Theme.of(context).primaryColorDark,
                                     ),
                                     title:
-                                        '${double.parse((sum).toStringAsFixed(2)).toString()} ${widget.eventWithUnit.unit.name}',
+                                        '${double.parse((sum).toStringAsFixed(2)).toString()} ${widget.eventWithUnitAndReminder.unit.name}',
                                     content: Text('Sum of all logged values.'));
                               }),
                         if (showSum)
@@ -150,7 +150,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                                 ),
                               ),
                               title:
-                                  '${double.parse((averageChange).toStringAsFixed(2)).toString()} ${widget.eventWithUnit.unit.name}',
+                                  '${double.parse((averageChange).toStringAsFixed(2)).toString()} ${widget.eventWithUnitAndReminder.unit.name}',
                               content: Text('Average change in value.')),
                         if (showChange)
                           AnalyticsCard(

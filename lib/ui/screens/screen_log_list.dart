@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:llog/data/moor_database.dart';
 import 'package:llog/ui/screens/screen_log_form.dart';
 import 'package:llog/ui/widgets/event_picker.dart';
 import 'package:llog/ui/widgets/llog_bottom_navigation.dart';
-import 'package:llog/ui/widgets/llog_dismissible.dart';
 import 'package:llog/ui/widgets/log_timeline_tile.dart';
 import 'package:moor_flutter/moor_flutter.dart' as moor;
 import 'package:provider/provider.dart';
-import 'package:timeline_tile/timeline_tile.dart';
 
 class LogListScreen extends StatefulWidget {
   @override
@@ -17,7 +14,6 @@ class LogListScreen extends StatefulWidget {
 
 class _LogListScreenState extends State<LogListScreen> {
   EventWithUnit _eventWithUnit;
-  bool _showFilters = false;
 
   @override
   Widget build(BuildContext context) {

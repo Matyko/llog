@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:llog/ui/screens/screen_event_list.dart';
 import 'package:llog/ui/screens/screen_home.dart';
 import 'package:llog/ui/screens/screen_log_list.dart';
-import 'package:llog/ui/screens/screen_unit_list.dart';
 
 class LlogBottomNavigation extends StatelessWidget {
   final int currentIndex;
